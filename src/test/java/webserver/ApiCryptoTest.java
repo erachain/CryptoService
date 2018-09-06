@@ -1,6 +1,9 @@
 package webserver;
 
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 import crypto.Base58;
+import crypto.Crypto;
 import crypto.Ed25519;
 import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.json.simple.JSONObject;
@@ -10,11 +13,19 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 import static org.junit.Assert.*;
 
-public class ApiCryptoTest {
+public class ApiCryptoTest extends SetSettingFile {
 
     private static final String MESSAGE = "Test message for check encrypt/decrypt";
     private static String SEED_ACCOUNT1;
@@ -55,7 +66,10 @@ public class ApiCryptoTest {
 
         Account2_privateKey = jsonObject2.get("privateKey").toString();
         Account2_publicKey = jsonObject2.get("publicKey").toString();
-
+        try {
+            new SetSettingFile().SettingFile();
+        } catch (Exception e) {
+        }
     }
 
     @Test
@@ -170,4 +184,86 @@ public class ApiCryptoTest {
         assertEquals(jsonObject.get("privateKey"), "L1u9aTnn3jnrjTEdVT5kGbbNxM5GcVSmWC7pf9mu5zYGnE1RpgpZjfYvMKFqypKKmdRvSo79G2hMvSvVCKmnmvf");
         assertEquals(jsonObject.get("account"), "75aS9viw8C5rxa78AqutzLiMzwM9RS7pTk");
     }
+
+    // 79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH
+    @Test
+    public void SomeTest() {
+        JSONObject jsonObject = new JSONObject();
+        ArrayList arrayListRecipient = new ArrayList();
+        for (int i = 0; i < 5; i++) {
+            int nonce = i;
+            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
+            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+            utils.Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(keyPair.getB());
+            arrayListRecipient.add(address);
+        }
+
+
+        ArrayList arrayListCreator = new ArrayList();
+        for (int i = 0; i < 10; i++) {
+            int nonce = i;
+            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_CREATOR), nonceBytes);
+            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+            utils.Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(keyPair.getB());
+            arrayListCreator.add(address);
+        }
+        JSONObject message = new JSONObject();
+
+        Random random = new Random();
+        for (int i = 0; i < 100; i++) {
+            long date = System.currentTimeMillis();
+            Object recipient = arrayListRecipient.get(random.nextInt(5));
+            Object creator = arrayListCreator.get(random.nextInt(10));
+            int user = random.nextInt(33465666);
+            int expire = random.nextInt(1243555959);
+            int randomPrice = random.nextInt(10000);
+            String phone = random.nextInt(900) + 100 + "" + random.nextInt(643) + 100 + "" + random.nextInt(9000) + 1000;
+
+            message.put("data", date);
+            message.put("order", "something");
+            message.put("user", user);
+            message.put("curr", "643");
+            message.put("sum", randomPrice);
+
+            int d = 0;
+        }
+
+    }
+    public String ResponseValueAPI(String urlNode, String requestMethod, String value) throws Exception {
+
+        URL obj = new URL(urlNode);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod(requestMethod.toUpperCase());
+
+        switch (requestMethod.toUpperCase()) {
+            case "GET":
+                con.setRequestMethod("GET");
+                break;
+            case "POST":
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                con.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));
+                con.getOutputStream().flush();
+                con.getOutputStream().close();
+                break;
+        }
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            response.append(in.readLine());
+        }
+        in.close();
+        return response.toString();
+    }
+
 }

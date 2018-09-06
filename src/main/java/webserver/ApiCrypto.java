@@ -11,12 +11,10 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import utils.Pair;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Random;
 
 @Path("crypto")
@@ -267,5 +265,30 @@ public class ApiCrypto {
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(jsonObjecttResult.toJSONString())
                 .build();
+    }
+
+    /**
+     * Generate random telegram
+     *
+     * @param count count telegram for send
+     */
+    @GET
+    @Path("generateTelegram")
+    public void generateTelegram(@QueryParam("count") Integer count) {
+        JSONObject jsonObject = new JSONObject();
+
+        ArrayList arrayList = new ArrayList() {{
+            add("79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH");
+            add("73FU5sBnioJVdhM6Ab9Zj665AwqkoP9o1p");
+            add("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
+            add("772byjS19xS7MJRMP6xw6wZsM8faRwXLYE");
+            add("7LAF61f9hXhZwjDyusAVWWTbRfrJ1B4ef7");
+
+        }};
+        for (int i = 0; i < count; i++) {
+int random = new Random().nextInt();
+
+        }
+
     }
 }

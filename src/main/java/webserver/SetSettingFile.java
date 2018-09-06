@@ -14,9 +14,13 @@ public class SetSettingFile {
     static Integer SERVER_PORT;
     static String SERVER_BIND;
     static ArrayList<String> WHITE_LIST = new ArrayList<>();
+    static String SEED_CREATOR;
+    static String SEED_RECIPIENT;
+
 
     /**
      * Create setting file if not exist and read file.
+     *
      * @throws Exception
      */
     public void SettingFile() throws Exception {
@@ -31,6 +35,8 @@ public class SetSettingFile {
             arrayList.add("127.0.0.1");
             jsonObject.put("port", "8181");
             jsonObject.put("ip", arrayList);
+            jsonObject.put("seed_creator", "FRehz8SQKZJETLeWcjXi9dSJ5fj8yQmy78N7MdeUhsfx");
+            jsonObject.put("seed_recipient","3mhnpNULsG8qKgwFresGvY5uVw1ETXSgS4cPx7avZjpP");
             fileWriter.write(jsonObject.toJSONString());
             fileWriter.flush();
             fileWriter.close();
@@ -48,6 +54,8 @@ public class SetSettingFile {
             JSONObject jsonObject = (JSONObject) jsonParser.parse(fileSetting);
             SERVER_BIND = jsonObject.get("bind").toString();
             SERVER_PORT = Integer.parseInt(jsonObject.get("port").toString());
+            SEED_CREATOR = jsonObject.get("seed_creator").toString();
+            SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
 
             for (Object aJsonArray : jsonArray) {
