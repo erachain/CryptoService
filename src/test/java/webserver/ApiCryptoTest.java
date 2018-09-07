@@ -13,14 +13,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -185,12 +178,16 @@ public class ApiCryptoTest extends SetSettingFile {
         assertEquals(jsonObject.get("account"), "75aS9viw8C5rxa78AqutzLiMzwM9RS7pTk");
     }
 
-    // 79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH
+    /**
+     * In test hardcore set ip address node for sent telegram
+     *
+     * @throws Exception
+     */
     @Test
-    public void SomeTest() {
+    public void generateTelegram() throws Exception {
         JSONObject jsonObject = new JSONObject();
         ArrayList arrayListRecipient = new ArrayList();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 1; i < 5; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
             byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
@@ -202,7 +199,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
 
         ArrayList arrayListCreator = new ArrayList();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 1; i < 10; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
             byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_CREATOR), nonceBytes);
@@ -216,54 +213,34 @@ public class ApiCryptoTest extends SetSettingFile {
         Random random = new Random();
         for (int i = 0; i < 100; i++) {
             long date = System.currentTimeMillis();
-            Object recipient = arrayListRecipient.get(random.nextInt(5));
-            Object creator = arrayListCreator.get(random.nextInt(10));
+            Object recipient = arrayListRecipient.get(random.nextInt(4));
+            Object creator = arrayListCreator.get(random.nextInt(9));
             int user = random.nextInt(33465666);
             int expire = random.nextInt(1243555959);
             int randomPrice = random.nextInt(10000);
+
             String phone = random.nextInt(900) + 100 + "" + random.nextInt(643) + 100 + "" + random.nextInt(9000) + 1000;
 
             message.put("data", date);
-            message.put("order", "something");
+            message.put("order", random.nextInt(52193287));
             message.put("user", user);
             message.put("curr", "643");
             message.put("sum", randomPrice);
+            message.put("phone", phone);
+            message.put("expire", expire);
 
-            int d = 0;
+            jsonObject.put("sender", creator);
+            jsonObject.put("recipient", recipient);
+
+
+            jsonObject.put("title", phone);
+            jsonObject.put("encrypt", "false");
+            jsonObject.put("password", "123456789");
+            jsonObject.put("message", message);
+
+            ResponseValueAPI("http://127.0.0.1:9068/telegrams/send", "POST", jsonObject.toJSONString());
         }
-
     }
-    public String ResponseValueAPI(String urlNode, String requestMethod, String value) throws Exception {
 
-        URL obj = new URL(urlNode);
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
-        con.setRequestMethod(requestMethod.toUpperCase());
-
-        switch (requestMethod.toUpperCase()) {
-            case "GET":
-                con.setRequestMethod("GET");
-                break;
-            case "POST":
-                con.setRequestMethod("POST");
-                con.setDoOutput(true);
-                con.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));
-                con.getOutputStream().flush();
-                con.getOutputStream().close();
-                break;
-        }
-
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-            response.append(in.readLine());
-        }
-        in.close();
-        return response.toString();
-    }
 
 }

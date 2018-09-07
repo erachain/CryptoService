@@ -1,6 +1,4 @@
 package webserver;
-
-
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import crypto.AEScrypto;
@@ -18,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 @Path("crypto")
-public class ApiCrypto {
+public class ApiCrypto extends SetSettingFile {
 
     @GET
     public Response Default() {
@@ -268,27 +266,102 @@ public class ApiCrypto {
     }
 
     /**
-     * Generate random telegram
+     * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      *
      * @param count count telegram for send
+     * @param ip address where the message will be sent
+     *
+     * <h2>Example request</h2>
+     * http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1
+     *
+     * <h2>Example response</h2>
+     * "transaction":{
+     * "type_name":"Письмо",
+     * "creator":"7MY7sveruCAYsZ1VgEBUwWGw7AHDDLGtqu",
+     * "data":"{\"data\":1536312182706,\"phone\":\"150201009321000\",\"expire\":1113557407,\"sum\":2003,\"curr\":\"643\",\"user\":20836333,\"order\":30847425}",
+     * "signature":"4YQU3eRCEPvqEbjhvDFSHMbAPEH9n5aaBNuGRJyzmL6UeKdP1DAi8BSiSbCDCcjHdr4FY3mZ8UuuPF2YzYhUNqAC",
+     * "fee":"0.00028900",
+     * "publickey":"B5wzhCj4sY3nrXjY2Mt1TYj92pdXQ4QR7EFkP4wYuwut",
+     * "type":31,
+     * "confirmations":0,
+     * "title":"150201009321000",
+     * "message":"{\"data\":1536312182706,\"phone\":\"150201009321000\",\"expire\":1113557407,\"sum\":2003,\"curr\":\"643\",\"user\":20836333,\"order\":30847425}",
+     * "version":0,
+     * "record_type":"Письмо",
+     * "property2":0,
+     * "head":"150201009321000",
+     * "property1":128,
+     * "size":289,
+     * "encrypted":false,
+     * "recipient":"79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH",
+     * "sub_type_name":"",
+     * "isText":true,
+     * "timestamp":1536312182792
+     *  }
+     * }
+     * @return List telegram in JSON format
      */
     @GET
     @Path("generateTelegram")
-    public void generateTelegram(@QueryParam("count") Integer count) {
+    public Response generateTelegram(@QueryParam("count") Integer count, @QueryParam("ip") String ip) throws Exception {
         JSONObject jsonObject = new JSONObject();
-
-        ArrayList arrayList = new ArrayList() {{
-            add("79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH");
-            add("73FU5sBnioJVdhM6Ab9Zj665AwqkoP9o1p");
-            add("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
-            add("772byjS19xS7MJRMP6xw6wZsM8faRwXLYE");
-            add("7LAF61f9hXhZwjDyusAVWWTbRfrJ1B4ef7");
-
-        }};
-        for (int i = 0; i < count; i++) {
-int random = new Random().nextInt();
-
+        ArrayList arrayListRecipient = new ArrayList();
+        for (int i = 1; i < 5; i++) {
+            int nonce = i;
+            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
+            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+            utils.Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(keyPair.getB());
+            arrayListRecipient.add(address);
         }
 
+        ArrayList arrayListCreator = new ArrayList();
+        for (int i = 1; i < 10; i++) {
+            int nonce = i;
+            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_CREATOR), nonceBytes);
+            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+            utils.Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(keyPair.getB());
+            arrayListCreator.add(address);
+        }
+        JSONObject message = new JSONObject();
+
+        Random random = new Random();
+        for (int i = 0; i < count; i++) {
+            long date = System.currentTimeMillis();
+            Object recipient = arrayListRecipient.get(random.nextInt(4));
+            Object creator = arrayListCreator.get(random.nextInt(9));
+            int user = random.nextInt(33465666);
+            int expire = random.nextInt(1243555959);
+            int randomPrice = random.nextInt(10000);
+
+            String phone = random.nextInt(900) + 100 + "" + random.nextInt(643) + 100 + "" + random.nextInt(9000) + 1000;
+
+            message.put("data", date);
+            message.put("order", random.nextInt(52193287));
+            message.put("user", user);
+            message.put("curr", "643");
+            message.put("sum", randomPrice);
+            message.put("phone", phone);
+            message.put("expire", expire);
+
+            jsonObject.put("sender", creator);
+            jsonObject.put("recipient", recipient);
+
+            jsonObject.put("title", phone);
+            jsonObject.put("encrypt", "false");
+            jsonObject.put("password", "123456789");
+            jsonObject.put("message", message);
+
+            ResponseValueAPI("http://" + ip + ":9068/telegrams/send", "POST", jsonObject.toJSONString());
+        }
+        JSONObject result = new JSONObject();
+        result.put("status", count + " telegram send");
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(result.toJSONString())
+                .build();
     }
 }

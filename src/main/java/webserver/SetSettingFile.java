@@ -4,10 +4,10 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class SetSettingFile {
@@ -35,7 +35,7 @@ public class SetSettingFile {
             arrayList.add("127.0.0.1");
             jsonObject.put("port", "8181");
             jsonObject.put("ip", arrayList);
-            jsonObject.put("seed_creator", "FRehz8SQKZJETLeWcjXi9dSJ5fj8yQmy78N7MdeUhsfx");
+            jsonObject.put("seed_creator", "ASiXB5ddkaFZ4rKNWh68bb5Cmpu1oXj6fEPJqdQ8xJX7");
             jsonObject.put("seed_recipient","3mhnpNULsG8qKgwFresGvY5uVw1ETXSgS4cPx7avZjpP");
             fileWriter.write(jsonObject.toJSONString());
             fileWriter.flush();
@@ -66,5 +66,38 @@ public class SetSettingFile {
         } catch (Exception e) {
             throw new Exception(e);
         }
+    }
+
+    public String ResponseValueAPI(String urlNode, String requestMethod, String value) throws Exception {
+
+        URL obj = new URL(urlNode);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod(requestMethod.toUpperCase());
+
+        switch (requestMethod.toUpperCase()) {
+            case "GET":
+                con.setRequestMethod("GET");
+                break;
+            case "POST":
+                con.setRequestMethod("POST");
+                con.setDoOutput(true);
+                con.getOutputStream().write(value.getBytes(StandardCharsets.UTF_8));
+                con.getOutputStream().flush();
+                con.getOutputStream().close();
+                break;
+        }
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+            response.append(in.readLine());
+        }
+        in.close();
+        return response.toString();
     }
 }
