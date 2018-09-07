@@ -176,6 +176,8 @@ Method POST
 
 Example request:
 
+http://127.0.0.1:8181/crypto/generateAccount
+
 In body
 
 ```JSON
@@ -203,3 +205,26 @@ JSON format. Answer contains account seed, private/public key, account, number a
 | numAccount  | Integer | number account                  |
 | publicKey   | String  | public key in Base58 encoding   |
 | account     | String  | account in Base58 encoding      |
+
+## Generate random telegram
+
+| Field | Type    | Description     |
+| ----- | ------- | --------------- |
+| ip    | String  | ip address node |
+| count | Integer | count telegramm |
+
+Method GET
+
+Example request
+
+ http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1
+
+Example response
+
+JSON format. Answer contains count telegram sent.
+
+```JSON
+{
+    "status":"10 telegram send"
+}
+```
