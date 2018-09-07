@@ -211,7 +211,7 @@ public class ApiCryptoTest extends SetSettingFile {
         JSONObject message = new JSONObject();
 
         Random random = new Random();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             long date = System.currentTimeMillis();
             Object recipient = arrayListRecipient.get(random.nextInt(4));
             Object creator = arrayListCreator.get(random.nextInt(9));
@@ -238,7 +238,7 @@ public class ApiCryptoTest extends SetSettingFile {
             jsonObject.put("password", "123456789");
             jsonObject.put("message", message);
 
-            ResponseValueAPI("http://127.0.0.1:9068/telegrams/send", "POST", jsonObject.toJSONString());
+            ResponseValueAPI("http://89.235.184.251:9068/telegrams/send", "POST", jsonObject.toJSONString());
         }
     }
 

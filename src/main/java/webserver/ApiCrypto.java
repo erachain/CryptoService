@@ -355,7 +355,16 @@ public class ApiCrypto extends SetSettingFile {
             jsonObject.put("password", "123456789");
             jsonObject.put("message", message);
 
-            ResponseValueAPI("http://" + ip + ":9068/telegrams/send", "POST", jsonObject.toJSONString());
+            String resSend = ResponseValueAPI("http://" + ip + ":9068/telegrams/send", "POST", jsonObject.toJSONString());
+            JSONParser jsonParser = new JSONParser();
+
+            JSONObject object = (JSONObject) jsonParser.parse(resSend.replace("null",""));
+            if (object.get("error") != null) {
+                return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                        .header("Access-Control-Allow-Origin", "*")
+                        .entity(object.toJSONString())
+                        .build();
+            }
         }
         JSONObject result = new JSONObject();
         result.put("status", count + " telegram send");
