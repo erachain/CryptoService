@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class SetSettingFile {
     static Integer SERVER_PORT;
@@ -23,6 +24,7 @@ public class SetSettingFile {
      *
      * @throws Exception
      */
+    static Logger LOGGER = Logger.getLogger(SetSettingFile.class.getName());
     public void SettingFile() throws Exception {
         File setting = new File("setting.json");
 
@@ -35,7 +37,7 @@ public class SetSettingFile {
             arrayList.add("127.0.0.1");
             jsonObject.put("port", "8181");
             jsonObject.put("ip", arrayList);
-            jsonObject.put("seed_creator", "ASiXB5ddkaFZ4rKNWh68bb5Cmpu1oXj6fEPJqdQ8xJX7");
+            jsonObject.put("seed_creator", "FwLWGTTDEjTmJPQqrWwAWoi8dT5zwrmZiRkLUoQVkzRy");
             jsonObject.put("seed_recipient","3mhnpNULsG8qKgwFresGvY5uVw1ETXSgS4cPx7avZjpP");
             fileWriter.write(jsonObject.toJSONString());
             fileWriter.flush();
@@ -50,11 +52,13 @@ public class SetSettingFile {
             while ((line = bufferedReader.readLine()) != null) {
                 fileSetting += line;
             }
+
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(fileSetting);
             SERVER_BIND = jsonObject.get("bind").toString();
             SERVER_PORT = Integer.parseInt(jsonObject.get("port").toString());
             SEED_CREATOR = jsonObject.get("seed_creator").toString();
+            LOGGER.info(jsonObject.get("seed_creator").toString());
             SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
 

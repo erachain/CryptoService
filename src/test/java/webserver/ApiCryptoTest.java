@@ -219,7 +219,9 @@ public class ApiCryptoTest extends SetSettingFile {
             int expire = random.nextInt(1243555959);
             int randomPrice = random.nextInt(10000);
 
-            String phone = random.nextInt(900) + 100 + "" + random.nextInt(643) + 100 + "" + random.nextInt(9000) + 1000;
+            String phone = String.valueOf(random.nextInt(999 - 100) + 100) +
+                    String.valueOf(random.nextInt(999 - 100) + 100) +
+                    String.valueOf(random.nextInt(9999 - 1000) + 1000);
 
             message.put("data", date);
             message.put("order", random.nextInt(52193287));

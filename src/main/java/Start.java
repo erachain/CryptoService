@@ -1,3 +1,4 @@
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import webserver.SetSettingFile;
@@ -12,12 +13,15 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class Start {
-    static Logger LOGGER = Logger.getLogger(Start.class.getName());
+    static org.apache.log4j.Logger LOGGER = Logger.getLogger(Start.class.getName());
 
     public static void main(String args[]) throws Exception {
+
+        BasicConfigurator.configure();
+
         System.out.println("Build info: " + getManifestInfo());
         System.out.println();
-
+        LOGGER.info("Logger");
         File log4j = new File("log4j.properties");
         if (log4j.exists()) {
             PropertyConfigurator.configure(log4j.getAbsolutePath());

@@ -14,10 +14,15 @@ import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.logging.Logger;
+
 
 @Path("crypto")
 public class ApiCrypto extends SetSettingFile {
-
+    private static Thread thread;
+    static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
+    public static Boolean status;
+    final StatusSending statusSending = new StatusSending();
     @GET
     public Response Default() {
         JSONObject jsonObject = new JSONObject();
@@ -53,7 +58,7 @@ public class ApiCrypto extends SetSettingFile {
     @GET
     @Path("generateSeed")
     public Response GenerateSeed() {
-
+        LOGGER.info("ss");
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
         String seedBase58 = Base58.encode(seed);
@@ -265,45 +270,44 @@ public class ApiCrypto extends SetSettingFile {
                 .build();
     }
 
+    private static class StatusSending {
+        public Boolean status;
+    }
+
+    public Boolean getStatus() {
+        return this.status = status;
+    }
+
+    public Boolean setStatus() {
+        return this.status = false;
+    }
     /**
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
+     * If status true all telegram will sending. Status false suspending thread sending telegram.
      *
      * @param count count telegram for send
-     * @param ip address where the message will be sent
+     * @param ip address where the message will be sent with port
+     * @param sleep delay between sending telegrams
+     * @param status status send telegram
      *
      * <h2>Example request</h2>
-     * http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1
+     * http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1:9068&sleep=10status=true
      *
      * <h2>Example response</h2>
-     * "transaction":{
-     * "type_name":"Письмо",
-     * "creator":"7MY7sveruCAYsZ1VgEBUwWGw7AHDDLGtqu",
-     * "data":"{\"data\":1536312182706,\"phone\":\"150201009321000\",\"expire\":1113557407,\"sum\":2003,\"curr\":\"643\",\"user\":20836333,\"order\":30847425}",
-     * "signature":"4YQU3eRCEPvqEbjhvDFSHMbAPEH9n5aaBNuGRJyzmL6UeKdP1DAi8BSiSbCDCcjHdr4FY3mZ8UuuPF2YzYhUNqAC",
-     * "fee":"0.00028900",
-     * "publickey":"B5wzhCj4sY3nrXjY2Mt1TYj92pdXQ4QR7EFkP4wYuwut",
-     * "type":31,
-     * "confirmations":0,
-     * "title":"150201009321000",
-     * "message":"{\"data\":1536312182706,\"phone\":\"150201009321000\",\"expire\":1113557407,\"sum\":2003,\"curr\":\"643\",\"user\":20836333,\"order\":30847425}",
-     * "version":0,
-     * "record_type":"Письмо",
-     * "property2":0,
-     * "head":"150201009321000",
-     * "property1":128,
-     * "size":289,
-     * "encrypted":false,
-     * "recipient":"79MXsjo9DEaxzu6kSvJUauLhmQrB4WogsH",
-     * "sub_type_name":"",
-     * "isText":true,
-     * "timestamp":1536312182792
-     *  }
-     * }
+     * {"status sending telegrams", "true"}
+     *
      * @return List telegram in JSON format
      */
     @GET
     @Path("generateTelegram")
-    public Response generateTelegram(@QueryParam("count") Integer count, @QueryParam("ip") String ip) throws Exception {
+    public Response generateTelegram(@QueryParam("count") Integer count,
+                                     @QueryParam("ip") String ip,
+                                     @QueryParam("sleep") Integer sleep,
+                                     @QueryParam("status") Boolean status) {
+        //  final StatusSending statusSending = new StatusSending();
+
+
+        this.status = status;
         JSONObject jsonObject = new JSONObject();
         ArrayList arrayListRecipient = new ArrayList();
         for (int i = 1; i < 5; i++) {
@@ -329,48 +333,101 @@ public class ApiCrypto extends SetSettingFile {
         JSONObject message = new JSONObject();
 
         Random random = new Random();
-        for (int i = 0; i < count; i++) {
-            long date = System.currentTimeMillis();
-            Object recipient = arrayListRecipient.get(random.nextInt(4));
-            Object creator = arrayListCreator.get(random.nextInt(9));
-            int user = random.nextInt(33465666);
-            int expire = random.nextInt(1243555959);
-            int randomPrice = random.nextInt(10000);
 
-            String phone = random.nextInt(900) + 100 + "" + random.nextInt(643) + 100 + "" + random.nextInt(9000) + 1000;
 
-            message.put("data", date);
-            message.put("order", random.nextInt(52193287));
-            message.put("user", user);
-            message.put("curr", "643");
-            message.put("sum", randomPrice);
-            message.put("phone", phone);
-            message.put("expire", expire);
+        thread = new Thread(() -> {
+            do {
+                if (this.status == true) {
 
-            jsonObject.put("sender", creator);
-            jsonObject.put("recipient", recipient);
+                    long date = System.currentTimeMillis();
+                    Object recipient = arrayListRecipient.get(random.nextInt(4));
+                    Object creator = arrayListCreator.get(random.nextInt(9));
+                    int user = random.nextInt(33465666);
+                    int expire = random.nextInt(1243555959);
+                    int randomPrice = random.nextInt(10000);
 
-            jsonObject.put("title", phone);
-            jsonObject.put("encrypt", "false");
-            jsonObject.put("password", "123456789");
-            jsonObject.put("message", message);
+                    String phone = String.valueOf(random.nextInt(999 - 100) + 100) +
+                            String.valueOf(random.nextInt(999 - 100) + 100) +
+                            String.valueOf(random.nextInt(9999 - 1000) + 1000);
 
-            String resSend = ResponseValueAPI("http://" + ip + ":9068/telegrams/send", "POST", jsonObject.toJSONString());
-            JSONParser jsonParser = new JSONParser();
+                    message.put("data", date);
+                    message.put("order", random.nextInt(52193287));
+                    message.put("user", user);
+                    message.put("curr", "643");
+                    message.put("sum", randomPrice);
+                    message.put("phone", phone);
+                    message.put("expire", expire);
 
-            JSONObject object = (JSONObject) jsonParser.parse(resSend.replace("null",""));
-            if (object.get("error") != null) {
-                return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                        .header("Access-Control-Allow-Origin", "*")
-                        .entity(object.toJSONString())
-                        .build();
-            }
-        }
+                    jsonObject.put("sender", creator);
+                    jsonObject.put("recipient", recipient);
+
+                    jsonObject.put("title", phone);
+                    jsonObject.put("encrypt", "false");
+                    jsonObject.put("password", "123456789");
+                    jsonObject.put("message", message);
+
+                    String resSend = null;
+                    try {
+                        resSend = ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    JSONParser jsonParser = new JSONParser();
+
+                    JSONObject object = null;
+                    try {
+                        object = (JSONObject) jsonParser.parse(resSend.replace("null", ""));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    if (object.get("error") != null) {
+                        Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                                .header("Access-Control-Allow-Origin", "*")
+                                .entity(object.toJSONString())
+                                .build();
+                    }
+                    try {
+                        Thread.sleep(sleep);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } while (true);
+        });
+
+        thread.start();
+
         JSONObject result = new JSONObject();
-        result.put("status", count + " telegram send");
+        result.put("status sending telegrams", this.status);
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(result.toJSONString())
+                .build();
+    }
+
+    /**
+     * Method set status sending telegram.
+     * True is set start. False stop
+     *
+     * @param status set status stop/start sending telegram
+     * @return
+     */
+    @GET
+    @Path("stopGenerate")
+    public Response stopGenerateTelegram(@QueryParam("status") Boolean status) {
+        this.status = status;
+
+        JSONObject jsonObjectResult = new JSONObject();
+        jsonObjectResult.put("status sending telegrams", this.status);
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObjectResult.toJSONString())
                 .build();
     }
 }
