@@ -25,7 +25,7 @@ Method: GET
 
 Example request:
 
-http://127.0.0.1:8181/crypto/generateSeed
+http://127.0.0.1:8181/com.crypto/generateSeed
 
 Example response:
 
@@ -43,11 +43,11 @@ Seed in Base58 encoding
 
 Method: GET
 
-http://127.0.0.1:8181/crypto/generateKeyPair/{seed}
+http://127.0.0.1:8181/com.crypto/generateKeyPair/{seed}
 
 Example request
 
-http://127.0.0.1:8181/crypto/generateKeyPair/DjUm5c4rat2xx8uD5TgUeWf1HreM3WzwrVaE39WemCxY
+http://127.0.0.1:8181/com.crypto/generateKeyPair/DjUm5c4rat2xx8uD5TgUeWf1HreM3WzwrVaE39WemCxY
 
 Answer in JSON format. Keys in Base58 encoding.
 
@@ -67,7 +67,7 @@ Method post
 
 Example request
 
-http://127.0.0.1:8181/crypto/encrypt
+http://127.0.0.1:8181/com.crypto/encrypt
 
 In body
 
@@ -95,7 +95,7 @@ Method POST
 
 Example request:
 
-http://127.0.0.1:8181/crypto/decrypt
+http://127.0.0.1:8181/com.crypto/decrypt
 
 In body
 
@@ -123,7 +123,7 @@ Method POST
 
 Example request:
 
-http://127.0.0.1:8181/crypto/sign
+http://127.0.0.1:8181/com.crypto/sign
 
 In body
 
@@ -151,7 +151,7 @@ Method POST
 
 Example request:
 
-http://127.0.0.1:8181/crypto/verifySignature
+http://127.0.0.1:8181/com.crypto/verifySignature
 
 ```JSON
 {"message": "CjM7CfrxdZRbrtGdWx2iPnWcsCbS8MH4vA4kc3jgCsgvgDVzGtJNmkweApeE6BZgGy","publicKey":"BHJAVuNsvcjWy6jaaF85HHYzr9Up9rA4BW3xseUBs9Un","signature":"26xAhHEhZ1kh4L9svvqb1RQFPgR2emHf592AchQywLrHPVfX8aLpwRUrS4gEg3XR2zUhYHE7d5FWbUrSo3Nni9K1"}
@@ -176,7 +176,7 @@ Method POST
 
 Example request:
 
-http://127.0.0.1:8181/crypto/generateAccount
+http://127.0.0.1:8181/com.crypto/generateAccount
 
 In body
 
@@ -217,7 +217,7 @@ Method GET
 
 Example request
 
- http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1
+ http://127.0.0.1:8181/com.crypto/generateTelegram?count=10&ip=127.0.0.1
 
 Example response
 
