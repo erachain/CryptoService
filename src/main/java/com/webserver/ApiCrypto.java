@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import com.Pair;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +24,15 @@ import java.util.logging.Logger;
 @Controller
 @RequestMapping("/crypto")
 @CrossOrigin
-//@Path("crypto")
-public class ApiCrypto extends SetSettingFile {
+public class ApiCrypto {
     private static Thread thread;
-    static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
+    //  static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
     public static Boolean status;
-    final StatusSending statusSending = new StatusSending();
 
-    @GET
-    public Response Default() {
+    @RequestMapping(method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @ResponseStatus(code = HttpStatus.OK)
+    @ResponseBody
+    public String Default() {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("crypto/generateSeed", "GenerateSeed, GET");
@@ -41,14 +42,7 @@ public class ApiCrypto extends SetSettingFile {
         jsonObject.put("crypto/sign", "Sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
         jsonObject.put("crypto/verifySignature", "Verify sign, POST. Body request: {\"message\": \"{message}\", \"publicKey\":\"{publicKey}\",\"signature\":\"{sign}\"}");
 
-
-        return Response.status(200)
-                .header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
-
-
+        return jsonObject.toJSONString();
     }
 
     /**
@@ -62,13 +56,11 @@ public class ApiCrypto extends SetSettingFile {
      * <h2>Example response</h2>
      * {"seed":"D9FFKCjo4cG2jL9FrZmXCKfQypZG8AdbnF7vtm5Aqou9"}
      */
-    //@GET
-    //@Path("generateSeed")
-    @RequestMapping(value = "generateSeed", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+    @RequestMapping(value = "generateSeed", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
     @ResponseStatus(code = HttpStatus.OK)
     @ResponseBody
     public String GenerateSeed() {
-        LOGGER.info("ss");
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
         String seedBase58 = Base58.encode(seed);
@@ -76,10 +68,6 @@ public class ApiCrypto extends SetSettingFile {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("seed", seedBase58);
 
-//        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-//                .header("Access-Control-Allow-Origin", "*")
-//                .entity(jsonObject.toJSONString())
-//                .build();
         return jsonObject.toJSONString();
     }
 
@@ -98,9 +86,13 @@ public class ApiCrypto extends SetSettingFile {
      * @param seed is a {@link #GenerateSeed()} master key for generating key pair
      * @return key pair. Public key - byte[32], Private key - byte[64]
      */
+    @RequestMapping(value = "generateKeyPair/{seed}", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    @ResponseStatus(code = HttpStatus.OK)
+    @ResponseBody
     @GET
     @Path("generateKeyPair/{seed}")
-    public Response GenerateKeyPair(@PathParam("seed") String seed) {
+    public String GenerateKeyPair(@PathParam("seed") String seed) {
 
         Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(Base58.decode(seed));
 
@@ -108,10 +100,7 @@ public class ApiCrypto extends SetSettingFile {
         jsonObject.put("publicKey", Base58.encode(keyPair.getB()));
         jsonObject.put("privateKey", Base58.encode(keyPair.getA()));
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
+        return jsonObject.toJSONString();
     }
 
     /**
@@ -122,9 +111,11 @@ public class ApiCrypto extends SetSettingFile {
      * @return JSON string contains encode Base58 message
      * @throws Exception
      */
-    @POST
-    @Path("encrypt")
-    public Response Encrypt(String encrypt) throws Exception {
+    @RequestMapping(value = "encrypt", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    @ResponseStatus(code = HttpStatus.OK)
+    @ResponseBody
+    public String Encrypt(@RequestBody String encrypt) throws Exception {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt);
@@ -137,10 +128,8 @@ public class ApiCrypto extends SetSettingFile {
         String result = Base58.encode(AEScrypto.dataEncrypt(message.getBytes(), privateKey, publicKey));
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("encrypted", result);
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjectResult.toJSONString())
-                .build();
+
+        return jsonObjectResult.toJSONString();
     }
 
     /**
@@ -320,22 +309,23 @@ public class ApiCrypto extends SetSettingFile {
 
         this.status = status;
         JSONObject jsonObject = new JSONObject();
-        ArrayList arrayListRecipient = new ArrayList();
+        ArrayList<String> arrayListRecipient = new ArrayList<>();
         for (int i = 1; i < 5; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
-            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SetSettingFile.SEED_RECIPIENT), nonceBytes);
             byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
             Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
             String address = Crypto.getInstance().getAddress(keyPair.getB());
             arrayListRecipient.add(address);
         }
 
-        ArrayList arrayListCreator = new ArrayList();
+        ArrayList<String> arrayListCreator = new ArrayList<>();
         for (int i = 1; i < 10; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
-            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_CREATOR), nonceBytes);
+
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SetSettingFile.SEED_CREATOR), nonceBytes);
             byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
             Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
             String address = Crypto.getInstance().getAddress(keyPair.getB());
@@ -379,7 +369,7 @@ public class ApiCrypto extends SetSettingFile {
 
                     String resSend = null;
                     try {
-                        resSend = ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
+                        resSend = (String) SetSettingFile.ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

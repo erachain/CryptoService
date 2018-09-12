@@ -7,6 +7,7 @@ import com.webserver.SetSettingFile;
 import com.webserver.WebServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,31 +19,26 @@ import java.util.jar.Manifest;
 
 @SpringBootApplication
 public class Start {
-    static org.apache.log4j.Logger LOGGER = Logger.getLogger(Start.class.getName());
+    // static org.apache.log4j.Logger LOGGER = Logger.getLogger(Start.class.getName());
 
     public static void main(String args[]) throws Exception {
 
         SpringApplication.run(Start.class);
-      //  BasicConfigurator.configure();
 
         System.out.println("Build info: " + getManifestInfo());
-        System.out.println();
-        LOGGER.info("Logger");
+
         File log4j = new File("log4j.properties");
         if (log4j.exists()) {
             PropertyConfigurator.configure(log4j.getAbsolutePath());
         } else {
             try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
                 PropertyConfigurator.configure(inputStream);
-                LOGGER.error("log4j.properties not found: " + log4j.getAbsolutePath() + ", using default.");
+                //        LOGGER.error("log4j.properties not found: " + log4j.getAbsolutePath() + ", using default.");
             } catch (Exception e) {
                 System.out.println("Error: missing configuration log4j file.");
                 System.exit(-1);
             }
         }
-
-        new SetSettingFile().SettingFile();
-       // new WebServer().start();
     }
 
     public static String getManifestInfo() throws IOException {

@@ -3,6 +3,13 @@ package com.webserver;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -11,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+@Configuration
 public class SetSettingFile {
     static Integer SERVER_PORT;
     static String SERVER_BIND;
@@ -18,14 +26,14 @@ public class SetSettingFile {
     static String SEED_CREATOR;
     static String SEED_RECIPIENT;
 
-
     /**
      * Create setting file if not exist and read file.
      *
      * @throws Exception
      */
-    static Logger LOGGER = Logger.getLogger(SetSettingFile.class.getName());
-    public void SettingFile() throws Exception {
+    //   static Logger LOGGER = Logger.getLogger(SetSettingFile.class.getName());
+    @Bean
+    public String SettingFile() throws Exception {
         File setting = new File("setting.json");
 
         if (!setting.exists()) {
@@ -58,7 +66,6 @@ public class SetSettingFile {
             SERVER_BIND = jsonObject.get("bind").toString();
             SERVER_PORT = Integer.parseInt(jsonObject.get("port").toString());
             SEED_CREATOR = jsonObject.get("seed_creator").toString();
-            LOGGER.info(jsonObject.get("seed_creator").toString());
             SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
 
@@ -70,9 +77,10 @@ public class SetSettingFile {
         } catch (Exception e) {
             throw new Exception(e);
         }
+        return "";
     }
 
-    public String ResponseValueAPI(String urlNode, String requestMethod, String value) throws Exception {
+    public static String ResponseValueAPI(String urlNode, String requestMethod, String value) throws Exception {
 
         URL obj = new URL(urlNode);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
