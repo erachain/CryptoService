@@ -1,29 +1,28 @@
 package com.webserver;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
+import com.Pair;
 import com.crypto.AEScrypto;
 import com.crypto.Base58;
 import com.crypto.Crypto;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import com.Pair;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.QueryParam;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/crypto")
 @CrossOrigin
+@SuppressWarnings("unchecked")
 public class ApiCrypto {
     private static Thread thread;
     //  static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
@@ -32,7 +31,7 @@ public class ApiCrypto {
     @RequestMapping(method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseStatus(code = HttpStatus.OK)
     @ResponseBody
-    public String Default() {
+    public ResponseEntity Default() {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("crypto/generateSeed", "GenerateSeed, GET");
@@ -42,7 +41,7 @@ public class ApiCrypto {
         jsonObject.put("crypto/sign", "Sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
         jsonObject.put("crypto/verifySignature", "Verify sign, POST. Body request: {\"message\": \"{message}\", \"publicKey\":\"{publicKey}\",\"signature\":\"{sign}\"}");
 
-        return jsonObject.toJSONString();
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
     /**
@@ -58,9 +57,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generateSeed", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    @ResponseStatus(code = HttpStatus.OK)
-    @ResponseBody
-    public String GenerateSeed() {
+    public ResponseEntity GenerateSeed() {
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
         String seedBase58 = Base58.encode(seed);
@@ -68,7 +65,7 @@ public class ApiCrypto {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("seed", seedBase58);
 
-        return jsonObject.toJSONString();
+        return ResponseEntity.ok(jsonObject);
     }
 
     /**
@@ -88,11 +85,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generateKeyPair/{seed}", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    @ResponseStatus(code = HttpStatus.OK)
-    @ResponseBody
-    @GET
-    @Path("generateKeyPair/{seed}")
-    public String GenerateKeyPair(@PathParam("seed") String seed) {
+    public ResponseEntity generateKeyPair(@PathVariable("seed") String seed) {
 
         Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(Base58.decode(seed));
 
@@ -100,25 +93,20 @@ public class ApiCrypto {
         jsonObject.put("publicKey", Base58.encode(keyPair.getB()));
         jsonObject.put("privateKey", Base58.encode(keyPair.getA()));
 
-        return jsonObject.toJSONString();
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
     /**
      * Encrypt message by using my private key and there public key.
-     * {@link #GenerateKeyPair(String)}.
+     * {@link #generateKeyPair(String)}.
      *
-     * @param encrypt is JSON contains keys and message for encrypt
+     * @param jsonObject is JSON contains keys and message for encrypt
      * @return JSON string contains encode Base58 message
      * @throws Exception
      */
     @RequestMapping(value = "encrypt", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    @ResponseStatus(code = HttpStatus.OK)
-    @ResponseBody
-    public String Encrypt(@RequestBody String encrypt) throws Exception {
-
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt);
+    public ResponseEntity encrypt(@RequestBody JSONObject jsonObject) {
 
         String message = jsonObject.get("message").toString();
 
@@ -129,7 +117,7 @@ public class ApiCrypto {
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("encrypted", result);
 
-        return jsonObjectResult.toJSONString();
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 
     /**
@@ -140,12 +128,11 @@ public class ApiCrypto {
      * If cannot decrypt return error.
      * @throws Exception
      */
-    @POST
-    @Path("decrypt")
-    public Response Decrypt(String decrypt) throws Exception {
+    @RequestMapping(value = "decrypt", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity decrypt(@RequestBody JSONObject decrypt) throws Exception {
 
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(decrypt);
+        JSONObject jsonObject = decrypt;
         byte[] message = Base58.decode(jsonObject.get("message").toString());
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] privateKey = Base58.decode(jsonObject.get("privateKey").toString());
@@ -157,25 +144,22 @@ public class ApiCrypto {
         else
             jsonObjectResult.put("decrypted", new String(result, StandardCharsets.UTF_8));
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjectResult.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 
     /**
      * Get signature
      *
-     * @param toSign JSON string contains {@link #GenerateKeyPair(String)} keyPair for sign and message
+     * @param toSign JSON string contains {@link #generateKeyPair(String)} keyPair for sign and message
      * @return
      * @throws Exception
      */
-    @POST
-    @Path("sign")
-    public Response Sign(String toSign) throws Exception {
+    @RequestMapping(value = "sign", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity sign(@RequestBody JSONObject toSign) throws Exception {
 
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(toSign);
+        // JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = toSign;
         String message = jsonObject.get("message").toString();
 
         Pair<byte[], byte[]> pair = new Pair<>();
@@ -186,10 +170,7 @@ public class ApiCrypto {
         JSONObject jsonObjectSign = new JSONObject();
         jsonObjectSign.put("signature", Base58.encode(sign));
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjectSign.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObjectSign.toJSONString());
     }
 
     /**
@@ -199,11 +180,11 @@ public class ApiCrypto {
      * @return JSON string contains
      * @throws Exception
      */
-    @POST
-    @Path("verifySignature")
-    public Response VerifySignature(String toVerifySign) throws Exception {
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(toVerifySign);
+    @RequestMapping(value = "verifySignature", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity verifySignature(@RequestBody JSONObject toVerifySign) throws Exception {
+
+        JSONObject jsonObject = toVerifySign;
 
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] signature = Base58.decode(jsonObject.get("signature").toString());
@@ -214,10 +195,7 @@ public class ApiCrypto {
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("signatureVerify", statusVerify);
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjectResult.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 
     /**
@@ -239,16 +217,15 @@ public class ApiCrypto {
      * "account":"7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx"}
      * @throws ParseException
      */
-    @POST
-    @Path("generateAccount")
-    public Response generateAccount(String value) throws ParseException {
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(value);
+    @RequestMapping(value = "generateAccount", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
 
+    public ResponseEntity generateAccount(@RequestBody JSONObject value) throws ParseException {
 
+        JSONObject jsonObject = value;
         Integer nonce = Integer.valueOf(jsonObject.get("nonce").toString());
         String seed = jsonObject.get("seed").toString();
-        JSONObject jsonObjecttResult = new JSONObject();
+        JSONObject jsonObjectResult = new JSONObject();
 
         byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
         byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seed), nonceBytes);
@@ -258,28 +235,13 @@ public class ApiCrypto {
 
         String address = Crypto.getInstance().getAddress(keyPair.getB());
 
-        jsonObjecttResult.put("numAccount", nonce);
-        jsonObjecttResult.put("accountSeed", Base58.encode(accountSeed));
-        jsonObjecttResult.put("publicKey", Base58.encode(keyPair.getB()));
-        jsonObjecttResult.put("privateKey", Base58.encode(keyPair.getA()));
-        jsonObjecttResult.put("account", address);
+        jsonObjectResult.put("numAccount", nonce);
+        jsonObjectResult.put("accountSeed", Base58.encode(accountSeed));
+        jsonObjectResult.put("publicKey", Base58.encode(keyPair.getB()));
+        jsonObjectResult.put("privateKey", Base58.encode(keyPair.getA()));
+        jsonObjectResult.put("account", address);
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjecttResult.toJSONString())
-                .build();
-    }
-
-    private static class StatusSending {
-        public Boolean status;
-    }
-
-    public Boolean getStatus() {
-        return this.status = status;
-    }
-
-    public Boolean setStatus() {
-        return this.status = false;
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 
     /**
@@ -298,14 +260,13 @@ public class ApiCrypto {
      *               {"status sending telegrams", "true"}
      * @return List telegram in JSON format
      */
-    @GET
-    @Path("generateTelegram")
-    public Response generateTelegram(@QueryParam("count") Integer count,
+    @RequestMapping(value = "generateTelegram", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity generateTelegram(@QueryParam("count") Integer count,
                                      @QueryParam("ip") String ip,
                                      @QueryParam("sleep") Integer sleep,
                                      @QueryParam("status") Boolean status) {
-        //  final StatusSending statusSending = new StatusSending();
-
 
         this.status = status;
         JSONObject jsonObject = new JSONObject();
@@ -324,7 +285,6 @@ public class ApiCrypto {
         for (int i = 1; i < 10; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
-
             byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SetSettingFile.SEED_CREATOR), nonceBytes);
             byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
             Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
@@ -351,6 +311,12 @@ public class ApiCrypto {
                             String.valueOf(random.nextInt(999 - 100) + 100) +
                             String.valueOf(random.nextInt(9999 - 1000) + 1000);
 
+                    Boolean type = random.nextBoolean();
+                    {
+                        Integer countField = random.nextInt(6);
+
+
+                    }
                     message.put("data", date);
                     message.put("order", random.nextInt(52193287));
                     message.put("user", user);
@@ -369,7 +335,7 @@ public class ApiCrypto {
 
                     String resSend = null;
                     try {
-                        resSend = (String) SetSettingFile.ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
+                        resSend = SetSettingFile.ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -382,10 +348,7 @@ public class ApiCrypto {
                         e.printStackTrace();
                     }
                     if (object.get("error") != null) {
-                        Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                                .header("Access-Control-Allow-Origin", "*")
-                                .entity(object.toJSONString())
-                                .build();
+                        //TODO return Error result
                     }
                     try {
                         Thread.sleep(sleep);
@@ -406,10 +369,7 @@ public class ApiCrypto {
 
         JSONObject result = new JSONObject();
         result.put("status sending telegrams", this.status);
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(result.toJSONString())
-                .build();
+        return ResponseEntity.ok(result.toJSONString());
     }
 
     /**
@@ -419,16 +379,14 @@ public class ApiCrypto {
      * @param status set status stop/start sending telegram
      * @return
      */
-    @GET
-    @Path("stopGenerate")
-    public Response stopGenerateTelegram(@QueryParam("status") Boolean status) {
-        this.status = status;
+    @RequestMapping(value = "stopGenerate", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
 
+    public ResponseEntity stopGenerateTelegram(@QueryParam("status") Boolean status) {
+
+        this.status = status;
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("status sending telegrams", this.status);
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjectResult.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 }

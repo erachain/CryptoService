@@ -1,18 +1,18 @@
 package com.webserver;
 
 import com.Pair;
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Ints;
 import com.crypto.Base58;
 import com.crypto.Crypto;
 import com.crypto.Ed25519;
-import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -45,16 +45,16 @@ public class ApiCryptoTest extends SetSettingFile {
         new Random().nextBytes(seedAccount2);
         SEED_ACCOUNT2 = Base58.encode(seedAccount2);
 
-        Object result = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT1);
-        Object keysObject = ((OutboundJaxrsResponse) result).getEntity();
+        Object result = new ApiCrypto().generateKeyPair(SEED_ACCOUNT1);
+        Object keysObject = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(keysObject.toString());
 
         Account1_privateKey = jsonObject.get("privateKey").toString();
         Account1_publicKey = jsonObject.get("publicKey").toString();
 
-        Object result2 = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT2);
-        Object keysObject2 = ((OutboundJaxrsResponse) result2).getEntity();
+        Object result2 = new ApiCrypto().generateKeyPair(SEED_ACCOUNT2);
+        Object keysObject2 = ((ResponseEntity) result2).getBody();
         JSONParser jsonParser2 = new JSONParser();
         JSONObject jsonObject2 = (JSONObject) jsonParser2.parse(keysObject2.toString());
 
@@ -69,7 +69,7 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void generateSeed() throws Exception {
         Object result = new ApiCrypto().GenerateSeed();
-        Object seed = ((OutboundJaxrsResponse) result).getEntity();
+        Object seed = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(seed.toString());
         Assert.assertTrue(jsonObject.keySet().contains("seed"));
@@ -77,8 +77,8 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void generateKeyPair() throws ParseException {
-        Object result = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT1);
-        Object keysObject = ((OutboundJaxrsResponse) result).getEntity();
+        Object result = new ApiCrypto().generateKeyPair(SEED_ACCOUNT1);
+        Object keysObject = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(keysObject.toString());
 
@@ -91,10 +91,11 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void encrypt() throws Exception {
 
-        Object result = new ApiCrypto().Encrypt("{\"message\":\"" + MESSAGE + "\", " +
+        Object result = new ApiCrypto().encrypt((JSONObject) new JSONParser().parse(
+                "{\"message\":\"" + MESSAGE + "\", " +
                 "\"publicKey\":\"" + Account2_publicKey + "\"," +
-                "\"privateKey\":\"" + Account1_privateKey + "\"}");
-        Object encrypt = ((OutboundJaxrsResponse) result).getEntity();
+                        "\"privateKey\":\"" + Account1_privateKey + "\"}"));
+        Object encrypt = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
         MESSAGE_ENCRYPT = jsonObject.get("encrypted").toString();
@@ -107,11 +108,11 @@ public class ApiCryptoTest extends SetSettingFile {
         if (MESSAGE_ENCRYPT == null)
             encrypt();
 
-        Object result = new ApiCrypto().Decrypt("{\"message\": \"" + MESSAGE_ENCRYPT +
+        Object result = new ApiCrypto().decrypt((JSONObject) new JSONParser().parse("{\"message\": \"" + MESSAGE_ENCRYPT +
                 "\",\"publicKey\":\"" + Account1_publicKey + "\",\n" +
-                "\"privateKey\":\"" + Account2_privateKey + "\"}");
+                "\"privateKey\":\"" + Account2_privateKey + "\"}"));
 
-        Object encrypt = ((OutboundJaxrsResponse) result).getEntity();
+        Object encrypt = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
 
@@ -124,11 +125,11 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void sign() throws Exception {
-        Object result = new ApiCrypto().Sign("{\"publicKey\":\"" + Account1_publicKey + "\",\n" +
+        Object result = new ApiCrypto().sign((JSONObject) new JSONParser().parse("{\"publicKey\":\"" + Account1_publicKey + "\",\n" +
                 "\"privateKey\":\"" + Account1_privateKey + "\"," +
-                " \"message\":\"" + MESSAGE + "\"}");
+                " \"message\":\"" + MESSAGE + "\"}"));
 
-        Object sign = ((OutboundJaxrsResponse) result).getEntity();
+        Object sign = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(sign.toString());
 
@@ -141,16 +142,15 @@ public class ApiCryptoTest extends SetSettingFile {
         if (SIGN == null)
             sign();
 
-        Object result = new ApiCrypto().VerifySignature("{\"publicKey\":\"" + Account1_publicKey + "\"," +
+        Object result = new ApiCrypto().verifySignature((JSONObject) new JSONParser().parse("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"signature\":\"" + SIGN + "\"," +
-                "\"message\":\"" + MESSAGE + "\"}");
+                "\"message\":\"" + MESSAGE + "\"}"));
 
-        Object sign = ((OutboundJaxrsResponse) result).getEntity();
+        Object sign = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(sign.toString());
 
         Assert.assertTrue(Boolean.parseBoolean(jsonObject.get("signatureVerify").toString()));
-
     }
 
     @Test
@@ -166,8 +166,10 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void generateAccount() throws Exception {
 
-        Object result = new ApiCrypto().generateAccount("{\"seed\":\"2UiJ8Fte8bvuZSFjhdEtJ2etVvbirNRDTu8KEs9BFxch\",\"nonce\":4}");
-        Object value = ((OutboundJaxrsResponse) result).getEntity();
+        Object result = new ApiCrypto().generateAccount((JSONObject) new
+                JSONParser().parse("{\"seed\":\"2UiJ8Fte8bvuZSFjhdEtJ2etVvbirNRDTu8KEs9BFxch\",\"nonce\":4}"));
+
+        Object value = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
 
         JSONObject jsonObject = (JSONObject) jsonParser.parse(value.toString());
@@ -241,7 +243,7 @@ public class ApiCryptoTest extends SetSettingFile {
             jsonObject.put("password", "123456789");
             jsonObject.put("message", message);
 
-            ResponseValueAPI("http://89.235.184.251:9068/telegrams/send", "POST", jsonObject.toJSONString());
+            //  ResponseValueAPI("http://89.235.184.251:9068/telegrams/send", "POST", jsonObject.toJSONString());
         }
     }
 
