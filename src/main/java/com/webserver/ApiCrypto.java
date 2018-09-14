@@ -1,6 +1,7 @@
 package com.webserver;
 
 import com.Pair;
+import com.StringRandomGen;
 import com.crypto.AEScrypto;
 import com.crypto.Base58;
 import com.crypto.Crypto;
@@ -291,47 +292,82 @@ public class ApiCrypto {
             String address = Crypto.getInstance().getAddress(keyPair.getB());
             arrayListCreator.add(address);
         }
-        JSONObject message = new JSONObject();
+
 
         Random random = new Random();
 
 
         thread = new Thread(() -> {
             do {
+                JSONObject message = new JSONObject();
                 if (this.status == true) {
+                    Integer typeTelegram = random.nextInt(3);
+                    String user = "", expire = "", randomPrice = "", phone = "", order = "";
+                    String encrypt = "false";
 
                     long date = System.currentTimeMillis();
                     Object recipient = arrayListRecipient.get(random.nextInt(4));
                     Object creator = arrayListCreator.get(random.nextInt(9));
-                    int user = random.nextInt(33465666);
-                    int expire = random.nextInt(1243555959);
-                    int randomPrice = random.nextInt(10000);
+                    StringRandomGen randomString = new StringRandomGen();
+                    if (typeTelegram == 1) {
+                        user = String.valueOf(random.nextInt(33465666));
+                        phone = String.valueOf(random.nextInt(999 - 100) + 100) +
+                                String.valueOf(random.nextInt(999 - 100) + 100) +
+                                String.valueOf(random.nextInt(9999 - 1000) + 1000);
+                        expire = String.valueOf(random.nextInt(1243555959));
+                        randomPrice = String.valueOf(random.nextInt(10000));
+                        order = String.valueOf(random.nextInt(52193287));
+                        if (random.nextInt(2) == 1)
+                            encrypt = String.valueOf(random.nextBoolean());
 
-                    String phone = String.valueOf(random.nextInt(999 - 100) + 100) +
-                            String.valueOf(random.nextInt(999 - 100) + 100) +
-                            String.valueOf(random.nextInt(9999 - 1000) + 1000);
+                    } else if (typeTelegram == 0) {
 
-                    Boolean type = random.nextBoolean();
-                    {
-                        Integer countField = random.nextInt(6);
+                        user = randomString.generateRandomString();
+                        expire = randomString.generateRandomString();
+                        phone = randomString.generateRandomString();
+                        randomPrice = randomString.generateRandomString();
+                        order = randomString.generateRandomString();
+                        encrypt = (randomString.generateRandomString());
 
+                    } else if (typeTelegram == 2) {
 
+                        Integer countField = random.nextInt(8);
+                        for (int i = 0; i < countField; i++) {
+                            String key = randomString.generateRandomString();
+                            String val = randomString.generateRandomString();
+                            message.put(key, val);
+                        }
+                        jsonObject.put("message", message);
+                        message.put("curr", "643");
+
+                        switch (random.nextInt(3)) {
+                            case 0:
+                                jsonObject.put("encrypt", "false");
+                                break;
+                            case 1:
+                                jsonObject.put("encrypt", "true");
+                                break;
+                        }
+                        jsonObject.put("title", randomString.generateRandomString());
+                        jsonObject.put("password", "123456789");
                     }
-                    message.put("data", date);
-                    message.put("order", random.nextInt(52193287));
-                    message.put("user", user);
-                    message.put("curr", "643");
-                    message.put("sum", randomPrice);
-                    message.put("phone", phone);
-                    message.put("expire", expire);
 
                     jsonObject.put("sender", creator);
                     jsonObject.put("recipient", recipient);
 
-                    jsonObject.put("title", phone);
-                    jsonObject.put("encrypt", "false");
-                    jsonObject.put("password", "123456789");
-                    jsonObject.put("message", message);
+                    if (typeTelegram == 1 || typeTelegram == 0) {
+                        message.put("data", date);
+                        message.put("order", order);
+                        message.put("user", user);
+                        message.put("curr", "643");
+                        message.put("sum", randomPrice);
+                        message.put("phone", phone);
+                        message.put("expire", expire);
+                        jsonObject.put("message", message);
+                        jsonObject.put("title", phone);
+                        jsonObject.put("encrypt", encrypt);
+                        jsonObject.put("password", "123456789");
+                    }
 
                     String resSend = null;
                     try {
