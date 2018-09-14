@@ -26,7 +26,7 @@
       //   GenerateKeyPair(Account2_seed);
       Encrypt(message, Account2_publicKey, Account1_privateKey);
       Decrypt(encryptMessage, Account1_publicKey, Account2_privateKey);
-      Sign(encryptMessage, Accou | nt1_publicKey, Account1_privateKey);
+      Sign(encryptMessage, Account1_publicKey, Account1_privateKey);
       VerifySignature(encryptMessage, Account1_publicKey, signature);
       GenerateAccount(Account1_seed);
   });
@@ -117,7 +117,7 @@
       });
 
   }
-
+  
   function VerifySignature(encMess, Acc1_public, sign) {
       var data = "{\"message\": \"" + encMess + "\", \"publicKey\":\"" + Acc1_public + "\",\"signature\":\"" + sign + "\"}";
       $.ajax({
