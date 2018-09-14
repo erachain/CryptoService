@@ -10,12 +10,13 @@ import com.google.common.primitives.Ints;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.QueryParam;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
@@ -26,7 +27,7 @@ import java.util.Random;
 @SuppressWarnings("unchecked")
 public class ApiCrypto {
     private static Thread thread;
-    //  static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
+      Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json; charset=utf-8")
@@ -264,10 +265,10 @@ public class ApiCrypto {
     @RequestMapping(value = "generateTelegram", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
-    public ResponseEntity generateTelegram(@QueryParam("count") Integer count,
-                                     @QueryParam("ip") String ip,
-                                     @QueryParam("sleep") Integer sleep,
-                                     @QueryParam("status") Boolean status) {
+    public ResponseEntity generateTelegram(@RequestParam("count") Integer count,
+                                           @RequestParam("ip") String ip,
+                                           @RequestParam("sleep") Integer sleep,
+                                           @RequestParam("status") Boolean status) {
 
         this.status = status;
         JSONObject jsonObject = new JSONObject();
@@ -299,6 +300,7 @@ public class ApiCrypto {
 
         thread = new Thread(() -> {
             do {
+                LOGGER.debug("send");
                 JSONObject message = new JSONObject();
                 if (this.status == true) {
                     Integer typeTelegram = random.nextInt(3);
@@ -418,7 +420,7 @@ public class ApiCrypto {
     @RequestMapping(value = "stopGenerate", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
 
-    public ResponseEntity stopGenerateTelegram(@QueryParam("status") Boolean status) {
+    public ResponseEntity stopGenerateTelegram(@RequestParam("status") Boolean status) {
 
         this.status = status;
         JSONObject jsonObjectResult = new JSONObject();
