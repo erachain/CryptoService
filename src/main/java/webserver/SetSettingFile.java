@@ -57,15 +57,14 @@ public class SetSettingFile {
             SERVER_BIND = jsonObject.get("bind").toString();
             SERVER_PORT = Integer.parseInt(jsonObject.get("port").toString());
             SEED_CREATOR = jsonObject.get("seed_creator").toString();
-            LOGGER.info(jsonObject.get("seed_creator").toString());
+            LOGGER.info("CREATOR: " + SEED_CREATOR);
             SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
+            LOGGER.info("RECIPIENT: " + SEED_RECIPIENT);
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
 
             for (Object aJsonArray : jsonArray) {
                 WHITE_LIST.add(aJsonArray.toString());
             }
-
-
         } catch (Exception e) {
             throw new Exception(e);
         }
