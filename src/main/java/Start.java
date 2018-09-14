@@ -8,26 +8,27 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class Start {
-    static org.apache.log4j.Logger LOGGER = Logger.getLogger(Start.class.getName());
+    final static private Logger LOGGER = Logger.getLogger(Start.class);
 
     public static void main(String args[]) throws Exception {
+        String buildInfo = "Build info: " + getManifestInfo();
 
         BasicConfigurator.configure();
 
-        System.out.println("Build info: " + getManifestInfo());
-        System.out.println();
-        LOGGER.info("Logger");
         File log4j = new File("log4j.properties");
         if (log4j.exists()) {
             PropertyConfigurator.configure(log4j.getAbsolutePath());
+            LOGGER.info(buildInfo);
         } else {
             try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
                 PropertyConfigurator.configure(inputStream);
+                LOGGER.info(buildInfo);
                 LOGGER.error("log4j.properties not found: " + log4j.getAbsolutePath() + ", using default.");
             } catch (Exception e) {
                 System.out.println("Error: missing configuration log4j file.");
@@ -39,7 +40,7 @@ public class Start {
         new WebServer().start();
     }
 
-    public static String getManifestInfo() throws IOException {
+    private static String getManifestInfo() throws IOException {
         Enumeration<URL> resources = Thread.currentThread()
                 .getContextClassLoader()
                 .getResources("META-INF/MANIFEST.MF");
@@ -51,6 +52,9 @@ public class Start {
                 if (implementationTitle != null) { // && implementationTitle.equals(applicationName))
                     String implementationVersion = attributes.getValue("Implementation-Version");
                     String buildTime = attributes.getValue("Build-Time");
+                    if (buildTime == null) {
+                        buildTime = new Timestamp(System.currentTimeMillis()).toString();
+                    }
                     return implementationVersion + " build " + buildTime;
                 }
             } catch (IOException e) {

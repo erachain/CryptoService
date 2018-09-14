@@ -4,6 +4,7 @@ import com.google.common.primitives.Ints;
 import crypto.AEScrypto;
 import crypto.Base58;
 import crypto.Crypto;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,13 +15,12 @@ import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.logging.Logger;
 
 
 @Path("crypto")
 public class ApiCrypto extends SetSettingFile {
     private static Thread thread;
-    static Logger LOGGER = Logger.getLogger(ApiCrypto.class.getName());
+    final static private Logger LOGGER = Logger.getLogger(ApiCrypto.class);
     public static Boolean status;
     final StatusSending statusSending = new StatusSending();
     @GET

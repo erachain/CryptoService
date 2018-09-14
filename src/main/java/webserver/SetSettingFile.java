@@ -1,5 +1,6 @@
 package webserver;
 
+import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -9,7 +10,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 public class SetSettingFile {
     static Integer SERVER_PORT;
@@ -17,14 +17,13 @@ public class SetSettingFile {
     static ArrayList<String> WHITE_LIST = new ArrayList<>();
     static String SEED_CREATOR;
     static String SEED_RECIPIENT;
-
+    final static private Logger LOGGER = Logger.getLogger(SetSettingFile.class);
 
     /**
      * Create setting file if not exist and read file.
      *
      * @throws Exception
      */
-    static Logger LOGGER = Logger.getLogger(SetSettingFile.class.getName());
     public void SettingFile() throws Exception {
         File setting = new File("setting.json");
 

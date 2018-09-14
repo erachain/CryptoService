@@ -17,10 +17,10 @@ import java.util.Set;
 
 public class WebServer extends SetSettingFile {
     public Server server;
-    static org.apache.log4j.Logger LOGGER = Logger.getLogger(AEScrypto.class.getName());
+    final static private Logger LOGGER = Logger.getLogger(WebServer.class);
 
     public WebServer() {
-        Set<Class<?>> s = new HashSet<Class<?>>();
+        Set<Class<?>> s = new HashSet<>();
         s.add(ApiCrypto.class);
         ResourceConfig config = new ResourceConfig(s);
         config.register(MultiPartFeature.class);
