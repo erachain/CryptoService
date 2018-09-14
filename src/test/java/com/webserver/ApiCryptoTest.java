@@ -11,6 +11,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 
@@ -186,6 +187,7 @@ public class ApiCryptoTest extends SetSettingFile {
      *
      * @throws Exception
      */
+    @Ignore
     @Test
     public void generateTelegram() throws Exception {
         JSONObject jsonObject = new JSONObject();
