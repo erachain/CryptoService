@@ -1,4 +1,5 @@
 package webserver;
+
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import crypto.AEScrypto;
@@ -13,6 +14,7 @@ import utils.Pair;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -430,4 +432,20 @@ public class ApiCrypto extends SetSettingFile {
                 .entity(jsonObjectResult.toJSONString())
                 .build();
     }
+
+    @POST
+    @Path("sendTelegram")
+    public Response sendTelegram() {
+        JSONObject jsonObject = new JSONObject();
+
+        byte[] transactionType = new byte[]{31, 0, 0, 0};
+        Long timestamp = Long.parseLong(new Timestamp(System.currentTimeMillis()).toString());
+
+
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
 }

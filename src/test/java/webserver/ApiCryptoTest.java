@@ -12,7 +12,10 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import utils.Pair;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -244,5 +247,81 @@ public class ApiCryptoTest extends SetSettingFile {
         }
     }
 
+    @Test
+    public void Sometest() throws IOException {
+        byte[] transactionType = new byte[]{31, 0, 0, 0};
+        //  byte[] timestamp = Base58.decode(String.valueOf(System.currentTimeMillis()));
+        byte[] timestamp = longToBytes(System.currentTimeMillis());
+        byte[] reference = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
+        byte[] publicKey = Base58.decode("8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV");
+        byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
+
+        byte[] feepow = new byte[]{0};
+        byte[] recipient = Base58.decode("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
+
+        byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
+        byte[] message = Base58.decode("{\"date\":1537448519,\"order\":\"928\",\"user\":\"12345678\",\"curr\":643,\"sum\":1500,\"expire\":1537954728,\"title\":\"\\u0422\\u0435\\u0441\\u0442\\u043e\\u0432\\u044b\\u0439 \\u043f\\u043b\\u0430\\u0442\\u0435\\u0436\",\"description\":\"\\u041f\\u043e\\u043a\\u0443\\u043f\\u043a\\u0430 \\u0432 \\u0442\\u0435\\u0441\\u0442\\u043e\\u0432\\u043e\\u043c \\u043c\\u0430\\u0433\\u0430\\u0437\\u0438\\u043d\\u0435\",\"details\":\"-\",\"callback\":\"-\"}");
+
+        byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
+        byte[] titleLength = new byte[]{7};
+        byte[] title = Base58.decode("12345678");
+        byte[] messageLength = new byte[]{0, 0, 1, 126};
+        byte[] isText = new byte[]{1};
+        byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
+
+
+        byte[] resultSign;
+        resultSign = Bytes.concat(transactionType, timestamp);
+        resultSign = Bytes.concat(resultSign, reference);
+        resultSign = Bytes.concat(resultSign, publicKey);
+        resultSign = Bytes.concat(resultSign, feepow);
+        resultSign = Bytes.concat(resultSign, recipient);
+        resultSign = Bytes.concat(resultSign, assetKey);
+        resultSign = Bytes.concat(resultSign, amount);
+        resultSign = Bytes.concat(resultSign, titleLength);
+        resultSign = Bytes.concat(resultSign, title);
+        resultSign = Bytes.concat(resultSign, messageLength);
+        resultSign = Bytes.concat(resultSign, message);
+        resultSign = Bytes.concat(resultSign, new byte[]{0}); //  0 - is not encrypt
+        resultSign = Bytes.concat(resultSign, isText);
+        resultSign = Bytes.concat(resultSign, port);
+
+        Pair pair = new Pair<>();
+        pair.setA(privateKey);
+        pair.setB(publicKey);
+
+        byte[] sign = Crypto.getInstance().sign(pair, resultSign);
+        System.out.println(Base58.encode(sign));
+
+        byte[] resultToSend;
+        resultToSend = Bytes.concat(transactionType, timestamp);
+        resultToSend = Bytes.concat(resultToSend, reference);
+        resultToSend = Bytes.concat(resultToSend, publicKey);
+        resultToSend = Bytes.concat(resultToSend, feepow);
+        resultToSend = Bytes.concat(resultToSend, sign);
+        resultToSend = Bytes.concat(resultToSend, recipient);
+        resultToSend = Bytes.concat(resultToSend, assetKey);
+        resultToSend = Bytes.concat(resultToSend, amount);
+        resultToSend = Bytes.concat(resultToSend, titleLength);
+        resultToSend = Bytes.concat(resultToSend, title);
+        resultToSend = Bytes.concat(resultToSend, messageLength);
+        resultSign = Bytes.concat(resultSign, message);
+        resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
+        resultToSend = Bytes.concat(resultToSend, isText);
+
+        System.out.println(Base58.encode(resultToSend));
+
+
+        String d = "";
+
+
+    }
+
+
+    public byte[] longToBytes(long x) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(x);
+        return buffer.array();
+    }
 
 }
