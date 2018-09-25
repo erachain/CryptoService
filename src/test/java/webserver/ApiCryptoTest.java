@@ -260,7 +260,9 @@ public class ApiCryptoTest extends SetSettingFile {
         byte[] recipient = Base58.decode("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
 
         byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
-        byte[] message = Base58.decode("{\"date\":1537448519,\"order\":\"928\",\"user\":\"12345678\",\"curr\":643,\"sum\":1500,\"expire\":1537954728,\"title\":\"\\u0422\\u0435\\u0441\\u0442\\u043e\\u0432\\u044b\\u0439 \\u043f\\u043b\\u0430\\u0442\\u0435\\u0436\",\"description\":\"\\u041f\\u043e\\u043a\\u0443\\u043f\\u043a\\u0430 \\u0432 \\u0442\\u0435\\u0441\\u0442\\u043e\\u0432\\u043e\\u043c \\u043c\\u0430\\u0433\\u0430\\u0437\\u0438\\u043d\\u0435\",\"details\":\"-\",\"callback\":\"-\"}");
+
+        String originalMessage = "{\"date\":1537448519,\"order\":\"928\",\"user\":\"12345678\",\"curr\":643,\"sum\":1500,\"expire\":1537954728,\"title\":\"123\",\"description\":\"user\",\"details\":\"-\",\"callback\":\"-\"}";
+        byte[] message = originalMessage.getBytes();
 
         byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
         byte[] titleLength = new byte[]{7};
@@ -268,7 +270,6 @@ public class ApiCryptoTest extends SetSettingFile {
         byte[] messageLength = new byte[]{0, 0, 1, 126};
         byte[] isText = new byte[]{1};
         byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
-
 
         byte[] resultSign;
         resultSign = Bytes.concat(transactionType, timestamp);
@@ -305,18 +306,13 @@ public class ApiCryptoTest extends SetSettingFile {
         resultToSend = Bytes.concat(resultToSend, titleLength);
         resultToSend = Bytes.concat(resultToSend, title);
         resultToSend = Bytes.concat(resultToSend, messageLength);
-        resultSign = Bytes.concat(resultSign, message);
+        resultToSend = Bytes.concat(resultToSend, message);
         resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
         resultToSend = Bytes.concat(resultToSend, isText);
 
         System.out.println(Base58.encode(resultToSend));
 
-
-        String d = "";
-
-
     }
-
 
     public byte[] longToBytes(long x) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
