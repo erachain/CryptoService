@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 
@@ -448,4 +449,35 @@ public class ApiCrypto extends SetSettingFile {
                 .build();
     }
 
+    @GET
+    @Path("decode/{message}")
+    public Response decode(@PathParam("message") String message) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("decodeBase58", Arrays.toString(Base58.decode(message)));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    @GET
+    @Path("encode/{message}")
+    public Response encode(@PathParam("message") String message) {
+        JSONObject jsonObject = new JSONObject();
+
+        String[] charString = (message.replace("[", "")
+                .replace("]", "")).split(",");
+
+        byte[] bytes = new byte[]{};
+        for (String val : charString) {
+            byte[] temp = new byte[]{Byte.valueOf((val.replace('"', ' ')).trim())};
+            bytes = Bytes.concat(bytes, temp);
+        }
+
+        jsonObject.put("encodeBase58", Base58.encode(bytes));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
 }

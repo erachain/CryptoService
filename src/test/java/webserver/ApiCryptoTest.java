@@ -292,7 +292,7 @@ public class ApiCryptoTest extends SetSettingFile {
         pair.setB(publicKey);
         System.out.println("bytecode to sign:" + Base58.encode(resultSign));
         byte[] sign = Crypto.getInstance().sign(pair, resultSign);
-        System.out.println("Sign: " + Base58.encode(sign));
+        System.out.println("Sign1: " + Base58.encode(sign));
 
         byte[] resultToSend;
         resultToSend = Bytes.concat(transactionType, timestamp);
@@ -311,6 +311,8 @@ public class ApiCryptoTest extends SetSettingFile {
         resultToSend = Bytes.concat(resultToSend, isText);
 
         System.out.println("Byte code to send: " + Base58.encode(resultToSend));
+        byte[] sign2 = Crypto.getInstance().sign(pair, Bytes.concat(resultToSend, port));
+        System.out.println("sign2: " + Base58.encode(sign2));
 
     }
 
@@ -319,5 +321,4 @@ public class ApiCryptoTest extends SetSettingFile {
         buffer.putLong(x);
         return buffer.array();
     }
-
 }
