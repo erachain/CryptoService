@@ -183,7 +183,7 @@ public class ApiCrypto extends SetSettingFile {
         Pair<byte[], byte[]> pair = new Pair<>();
         pair.setA(Base58.decode(jsonObject.get("privateKey").toString()));
         pair.setB(Base58.decode(jsonObject.get("publicKey").toString()));
-        byte[] sign = Crypto.getInstance().sign(pair, message.getBytes());
+        byte[] sign = Crypto.getInstance().sign(pair, Base58.decode(message));
 
         JSONObject jsonObjectSign = new JSONObject();
         jsonObjectSign.put("signature", Base58.encode(sign));
@@ -209,7 +209,7 @@ public class ApiCrypto extends SetSettingFile {
 
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] signature = Base58.decode(jsonObject.get("signature").toString());
-        byte[] message = jsonObject.get("message").toString().getBytes();
+        byte[] message = Base58.decode("message");
 
         boolean statusVerify = Crypto.getInstance().verify(publicKey, signature, message);
 
