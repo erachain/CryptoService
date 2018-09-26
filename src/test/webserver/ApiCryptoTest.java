@@ -262,36 +262,35 @@ public class ApiCryptoTest extends SetSettingFile {
         byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
 
         SendTX tx = new SendTX(publicKeyString, "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
-                "head text", "data text", BigDecimal.ZERO, System.currentTimeMillis(),0l,(byte)1);
+                "head text", "data text", BigDecimal.ZERO, System.currentTimeMillis(),1l,(byte)1);
 
-        tx.sign(new Pair<byte[], byte[]>(privateKey, privateKey));
+        tx.sign(new Pair<byte[], byte[]>(privateKey,publicKey));
         System.out.println(Base58.encode(tx.toBytes(true)));
     }
 
-    @Ignore
     @Test
     public void Sometest() throws IOException {
-        byte[] transactionType = new byte[]{(byte)31, (byte)0, (byte)0, (byte)0};
+        byte[] transactionType = new byte[]{31, 0, 0, 0};
         //  byte[] timestamp = Base58.decode(String.valueOf(System.currentTimeMillis()));
-        byte[] timestamp = Longs.toByteArray(System.currentTimeMillis());
-        byte[] reference = Longs.toByteArray(0L);
+        byte[] timestamp = longToBytes(System.currentTimeMillis());
+        byte[] reference = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
         byte[] publicKey = Base58.decode("8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV");
         byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
 
-        byte[] feepow = new byte[]{(byte) 0};
+        byte[] feepow = new byte[]{0};
         byte[] recipient = Base58.decode("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
 
-        byte[] assetKey = Longs.toByteArray(2L);
+        byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 0, 2};//new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
 
-        String originalMessage = "{date:1537448519}";
+        String originalMessage = "{\"date\":1537448519}";
         byte[] message = originalMessage.getBytes();
 
-        byte[] amount = Longs.toByteArray(10L);
+        byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
+        byte[] titleLength = new byte[]{6};
         byte[] title = Base58.decode("12345678");
-        byte[] titleLength = new byte[]{(byte) title.length};
-        byte[] messageLength = new byte[]{(byte) message.length};
-        byte[] isText = new byte[]{(byte) 0};
-        byte[] port = Ints.toByteArray(9066);
+        byte[] messageLength = new byte[]{0, 0, 0, 19};
+        byte[] isText = new byte[]{0};
+        byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
 
         byte[] resultSign;
         resultSign = Bytes.concat(transactionType, timestamp);
@@ -305,7 +304,7 @@ public class ApiCryptoTest extends SetSettingFile {
         resultSign = Bytes.concat(resultSign, title);
         resultSign = Bytes.concat(resultSign, messageLength);
         resultSign = Bytes.concat(resultSign, message);
-        resultSign = Bytes.concat(resultSign, new byte[]{(byte) 0}); //  0 - is not encrypt
+        resultSign = Bytes.concat(resultSign, new byte[]{0}); //  0 - is not encrypt
         resultSign = Bytes.concat(resultSign, isText);
         resultSign = Bytes.concat(resultSign, port);
 
@@ -329,12 +328,11 @@ public class ApiCryptoTest extends SetSettingFile {
         resultToSend = Bytes.concat(resultToSend, title);
         resultToSend = Bytes.concat(resultToSend, messageLength);
         resultToSend = Bytes.concat(resultToSend, message);
-        resultToSend = Bytes.concat(resultToSend, new byte[]{(byte)0}); //  0 - is not encrypt
+        resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
         resultToSend = Bytes.concat(resultToSend, isText);
 
-        System.out.println("Byte code to send: " + Base58.encode(resultToSend));
-        byte[] sign2 = Crypto.getInstance().sign(pair, Bytes.concat(resultToSend, port));
-        System.out.println("sign2: " + Base58.encode(sign2));
+        System.out.println("Byte code to send:" + Base58.encode(resultToSend));
+        byte[] sign2 = Crypto.getInstance().sign(pair, Bytes.concat(resultToSend));
 
     }
 
