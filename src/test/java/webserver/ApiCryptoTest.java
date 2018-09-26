@@ -261,13 +261,13 @@ public class ApiCryptoTest extends SetSettingFile {
 
         byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
 
-        String originalMessage = "{\"date\":1537448519,\"order\":\"928\",\"user\":\"12345678\",\"curr\":643,\"sum\":1500,\"expire\":1537954728,\"title\":\"123\",\"description\":\"user\",\"details\":\"-\",\"callback\":\"-\"}";
+        String originalMessage = "{\"date\":1537448519}";
         byte[] message = originalMessage.getBytes();
 
         byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
-        byte[] titleLength = new byte[]{7};
+        byte[] titleLength = new byte[]{6};
         byte[] title = Base58.decode("12345678");
-        byte[] messageLength = new byte[]{0, 0, 1, 126};
+        byte[] messageLength = new byte[]{0, 0, 0, 19};
         byte[] isText = new byte[]{1};
         byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
 
@@ -290,9 +290,9 @@ public class ApiCryptoTest extends SetSettingFile {
         Pair pair = new Pair<>();
         pair.setA(privateKey);
         pair.setB(publicKey);
-
+        System.out.println("bytecode to sign:" + Base58.encode(resultSign));
         byte[] sign = Crypto.getInstance().sign(pair, resultSign);
-        System.out.println(Base58.encode(sign));
+        System.out.println("Sign: " + Base58.encode(sign));
 
         byte[] resultToSend;
         resultToSend = Bytes.concat(transactionType, timestamp);
@@ -310,7 +310,7 @@ public class ApiCryptoTest extends SetSettingFile {
         resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
         resultToSend = Bytes.concat(resultToSend, isText);
 
-        System.out.println(Base58.encode(resultToSend));
+        System.out.println("Byte code to send: " + Base58.encode(resultToSend));
 
     }
 
