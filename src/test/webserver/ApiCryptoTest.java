@@ -2,6 +2,7 @@ package webserver;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 import crypto.Base58;
 import crypto.Crypto;
 import crypto.Ed25519;
@@ -11,10 +12,15 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import tx.SendTX;
 import utils.Pair;
+import webserver.ApiCrypto;
+import webserver.SetSettingFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
@@ -24,6 +30,8 @@ import static org.junit.Assert.*;
 public class ApiCryptoTest extends SetSettingFile {
 
     private static final String MESSAGE = "Test message for check encrypt/decrypt";
+    private static final String SEED_RECIPIENT = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
+    private static final String SEED_CREATOR = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
     private static String SEED_ACCOUNT1;
     private static String SEED_ACCOUNT2;
     private static String Account1_privateKey;
@@ -248,28 +256,42 @@ public class ApiCryptoTest extends SetSettingFile {
     }
 
     @Test
+    public void Sometest2() {
+        String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
+        byte[] publicKey = Base58.decode(publicKeyString);
+        byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
+
+        SendTX tx = new SendTX(publicKeyString, "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
+                "head text", "data text", BigDecimal.ZERO, System.currentTimeMillis(),0l,(byte)1);
+
+        tx.sign(new Pair<byte[], byte[]>(privateKey, privateKey));
+        System.out.println(Base58.encode(tx.toBytes(true)));
+    }
+
+    @Ignore
+    @Test
     public void Sometest() throws IOException {
-        byte[] transactionType = new byte[]{31, 0, 0, 0};
+        byte[] transactionType = new byte[]{(byte)31, (byte)0, (byte)0, (byte)0};
         //  byte[] timestamp = Base58.decode(String.valueOf(System.currentTimeMillis()));
-        byte[] timestamp = longToBytes(System.currentTimeMillis());
-        byte[] reference = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
+        byte[] timestamp = Longs.toByteArray(System.currentTimeMillis());
+        byte[] reference = Longs.toByteArray(0L);
         byte[] publicKey = Base58.decode("8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV");
         byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
 
-        byte[] feepow = new byte[]{0};
+        byte[] feepow = new byte[]{(byte) 0};
         byte[] recipient = Base58.decode("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
 
-        byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
+        byte[] assetKey = Longs.toByteArray(2L);
 
-        String originalMessage = "{\"date\":1537448519}";
+        String originalMessage = "{date:1537448519}";
         byte[] message = originalMessage.getBytes();
 
-        byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
-        byte[] titleLength = new byte[]{6};
+        byte[] amount = Longs.toByteArray(10L);
         byte[] title = Base58.decode("12345678");
-        byte[] messageLength = new byte[]{0, 0, 0, 19};
-        byte[] isText = new byte[]{1};
-        byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
+        byte[] titleLength = new byte[]{(byte) title.length};
+        byte[] messageLength = new byte[]{(byte) message.length};
+        byte[] isText = new byte[]{(byte) 0};
+        byte[] port = Ints.toByteArray(9066);
 
         byte[] resultSign;
         resultSign = Bytes.concat(transactionType, timestamp);
@@ -283,7 +305,7 @@ public class ApiCryptoTest extends SetSettingFile {
         resultSign = Bytes.concat(resultSign, title);
         resultSign = Bytes.concat(resultSign, messageLength);
         resultSign = Bytes.concat(resultSign, message);
-        resultSign = Bytes.concat(resultSign, new byte[]{0}); //  0 - is not encrypt
+        resultSign = Bytes.concat(resultSign, new byte[]{(byte) 0}); //  0 - is not encrypt
         resultSign = Bytes.concat(resultSign, isText);
         resultSign = Bytes.concat(resultSign, port);
 
@@ -307,7 +329,7 @@ public class ApiCryptoTest extends SetSettingFile {
         resultToSend = Bytes.concat(resultToSend, title);
         resultToSend = Bytes.concat(resultToSend, messageLength);
         resultToSend = Bytes.concat(resultToSend, message);
-        resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
+        resultToSend = Bytes.concat(resultToSend, new byte[]{(byte)0}); //  0 - is not encrypt
         resultToSend = Bytes.concat(resultToSend, isText);
 
         System.out.println("Byte code to send: " + Base58.encode(resultToSend));
