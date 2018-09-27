@@ -59,7 +59,7 @@ public class SendTX {
             type[2] = (byte) -127;
         }
         this.port = 9066;
-        this.setTX((byte) 0, (byte) 0, creator, recipient, type, head, data, amount, timestamp, key, feePow);
+        this.setTX((byte) 0, (byte) 1, creator, recipient, type, head, data, amount, timestamp, key, feePow);
     }
 
     private void setTX(byte encrypted, byte isText, String creator, String recipient, byte[] type, String head,

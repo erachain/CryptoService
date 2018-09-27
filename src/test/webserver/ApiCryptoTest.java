@@ -262,12 +262,13 @@ public class ApiCryptoTest extends SetSettingFile {
         byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
 
         SendTX tx = new SendTX(publicKeyString, "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
-                "head text", "data text", BigDecimal.ZERO, System.currentTimeMillis(),1l,(byte)1);
+                "head text234", "data text234", BigDecimal.ONE, System.currentTimeMillis(),2l,(byte)0);
 
         tx.sign(new Pair<byte[], byte[]>(privateKey,publicKey));
         System.out.println(Base58.encode(tx.toBytes(true)));
     }
 
+    @Ignore
     @Test
     public void Sometest() throws IOException {
         byte[] transactionType = new byte[]{31, 0, 0, 0};
