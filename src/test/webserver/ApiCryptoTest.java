@@ -19,11 +19,9 @@ import webserver.ApiCrypto;
 import webserver.SetSettingFile;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -259,36 +257,27 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void Sometest2() {
+        // --- SET TRX HEADER VALUES
         String creator = "7QvFWev7ijoCoPruHj7WtRvJHtKcFySeMe";
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
         String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
         String privateKeyString = "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr";
+        byte encrypt = 0;
 
         byte[] publicKey = Base58.decode(publicKeyString);
         byte[] privateKey = Base58.decode(privateKeyString);
-        //long timestamp = System.currentTimeMillis();
         long timestamp = ntp.NTP.getTime();
-
-        // --- SET VALUES
         String title = "9160010011";
+
+        // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
         String orderNumber = "ORDER #1";
         String orderUser = title;
         double orderAmount = 1500.33;
-        String details = "Оплата интернет заказа. НДС не обалагается";
-        byte encrypt = 0;
-        String newDetails = "";
-        try {
-            byte[] ptext = details.getBytes("UTF-8");
+        String orderDetails = "Оплата интернет заказа. НДС не облагается.";
+        String orderTitle = "COINS STORE INVOICE";
+        String orderDescription = "Набор монет из драгоценных металлов";
 
-            newDetails = new String(ptext, StandardCharsets.UTF_8);
-            System.out.println("--> " + newDetails);
-        } catch (UnsupportedEncodingException e) {
-            System.out.println(e);
-        }
-
-        ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(details);
-        System.out.println("ВЫВОД --> " + byteBuffer.toString());
 
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("data", orderDate);
@@ -296,24 +285,21 @@ public class ApiCryptoTest extends SetSettingFile {
         jsonObj.put("user", orderUser);
         jsonObj.put("curr", "643");
         jsonObj.put("sum", orderAmount);
-        jsonObj.put("title", "COINS STORE INVOICE");
-        jsonObj.put("details", newDetails);
-        jsonObj.put("description", "Монеты из драгоценных металлов");
+        jsonObj.put("title", orderTitle);
+        jsonObj.put("details", orderDetails);
+        jsonObj.put("description", orderDescription);
         jsonObj.put("expire", 35);
 
         String message = jsonObj.toJSONString();
         System.out.println(message);
-
         // ---
-        BigDecimal bigAmount = new BigDecimal(orderAmount, MathContext.DECIMAL64);
-        System.out.println("BigDecimal: " + bigAmount);
 
         SendTX tx = new SendTX(publicKeyString, recipient, title, message,
-                bigAmount,
+                BigDecimal.valueOf(orderAmount),
                 timestamp,2L, (byte)0, encrypt);
 
         tx.sign(new Pair<>(privateKey,publicKey));
-        System.out.println(Base58.encode(tx.toBytes(true)));
+        System.out.println("Bytecode to send:\n" + Base58.encode(tx.toBytes(true)));
     }
 
     @Ignore
