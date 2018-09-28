@@ -200,10 +200,29 @@ public class SendTX {
             //WRITE AMOUNT
             //byte[] amountBytes = Longs.toByteArray(this.amount.unscaledValue().longValue());
             //amountBytes = Bytes.ensureCapacity(amountBytes, AMOUNT_LENGTH, 0);
+
+            int different_scale = this.amount.scale() - 8;
+            BigDecimal amountBase;
+            if (different_scale != 0) {
+                // RESCALE AMOUNT
+                amountBase = this.amount.scaleByPowerOfTen(different_scale);
+                if (different_scale < 0)
+                    different_scale += 31 + 1;
+
+                // WRITE ACCURACY of AMMOUNT
+                data[3] = (byte) (data[3] | different_scale);
+            } else {
+                amountBase = this.amount;
+            }
+
             byte[] amountBytes = this.amount.unscaledValue().toByteArray();
             byte[] fill = new byte[AMOUNT_LENGTH - amountBytes.length];
+
+
             amountBytes = Bytes.concat(fill, amountBytes);
+
             data = Bytes.concat(data, amountBytes);
+            data[3] = (byte) different_scale;
         }
 
         // WRITE HEAD
