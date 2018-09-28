@@ -1,9 +1,10 @@
 package webserver;
 
-import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -17,7 +18,7 @@ public class SetSettingFile {
     static ArrayList<String> WHITE_LIST = new ArrayList<>();
     static String SEED_CREATOR;
     static String SEED_RECIPIENT;
-    final static private Logger LOGGER = Logger.getLogger(SetSettingFile.class);
+    final static private Logger LOGGER = LoggerFactory.getLogger(SetSettingFile.class);
 
     /**
      * Create setting file if not exist and read file.

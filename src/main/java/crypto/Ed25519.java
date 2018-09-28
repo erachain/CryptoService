@@ -1,6 +1,7 @@
 package crypto;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.whispersystems.curve25519.java.*;
 import utils.Pair;
 
@@ -8,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Ed25519 {
-    static Logger LOGGER = Logger.getLogger(Crypto.class.getName());
+    static Logger LOGGER = LoggerFactory.getLogger(Crypto.class);
 
     public static byte[] getSharedSecret(byte[] public_key, byte[] private_key) {
         byte[] shared_secret = new byte[32];

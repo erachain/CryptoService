@@ -15,6 +15,16 @@ ext {
     git = org.ajoberstar.grgit.Grgit.open()
     rev = git.head().id
     rev = git.head().getAbbreviatedId(8)
+    slf4jVersion = '1.7.25'
+    jettyVersion = '9.4.12.v20180830'
+    jerseyVersion = '2.27'
+    logbackVersion = '1.2.3'
+    bouncycastleVersion = '1.60'
+    guavaVersion = '26.0-jre'
+    jsonsimpleVersion = '1.1.1'
+    springbootVersion = '2.0.4.RELEASE'
+    springVersion = '5.0.8.RELEASE'
+    junitVersion = '4.12'
 }
 
 group 'CryptoService'
@@ -41,7 +51,6 @@ jar{
     exclude('META-INF/*.SF')
     exclude('META-INF/*.DSA')
     exclude('META-INF/*.RSA')
-
 }
 
 //tasks.withType(JavaCompile) {
@@ -62,17 +71,30 @@ sourceSets {
         }
     }
 }
+
 dependencies {
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.54'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.springframework.boot', name: 'spring-boot', version: '2.0.4.RELEASE'
-    compile group: 'org.springframework', name: 'spring-webmvc', version: '5.0.8.RELEASE'
-    compile group: 'org.eclipse.jetty.spdy', name: 'spdy-http-server', version: '9.2.26.v20180806'
-    compile group: 'org.glassfish.jersey.core', name: 'jersey-server', version: '2.22.2'
-    compile group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet', version: '2.22.2'
-    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.22.2'
-    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.3.7.v20160115'
-    compile 'log4j:log4j:1.2.17'
-    compile group: 'com.google.guava', name: 'guava', version: '19.0'
-    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "org.slf4j:slf4j-log4j12:${slf4jVersion}"
+    //compile "org.slf4j:slf4j-simple:${slf4jVersion}"
+
+    //compile "ch.qos.logback:logback-classic:${logbackVersion}"
+    //compile "ch.qos.logback:logback-core:${logbackVersion}"
+
+    compile "org.eclipse.jetty:jetty-server:${jettyVersion}"
+    compile "org.eclipse.jetty:jetty-servlet:${jettyVersion}"
+
+    compile "org.glassfish.jersey.core:jersey-server:${jerseyVersion}"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}"
+    compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVersion}"
+    compile "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}"
+    compile "org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}"
+
+    compile "org.bouncycastle:bcprov-jdk15on:${bouncycastleVersion}"
+    compile "com.google.guava:guava:${guavaVersion}"
+    compile "com.googlecode.json-simple:json-simple:${jsonsimpleVersion}"
+
+    compile "org.springframework.boot:spring-boot:${springbootVersion}"
+    compile "org.springframework:spring-webmvc:${springVersion}"
+
+    testCompile "junit:junit:${junitVersion}"
 }

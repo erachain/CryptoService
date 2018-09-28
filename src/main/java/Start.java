@@ -1,12 +1,9 @@
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import webserver.SetSettingFile;
 import webserver.WebServer;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Enumeration;
@@ -14,30 +11,22 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class Start {
-    final static private Logger LOGGER = Logger.getLogger(Start.class);
+    final static private Logger LOGGER = LoggerFactory.getLogger(Start.class.getName());
 
     public static void main(String args[]) throws Exception {
-        String buildInfo = "Build info: " + getManifestInfo();
-
-        BasicConfigurator.configure();
-
-        File log4j = new File("log4j.properties");
-        if (log4j.exists()) {
-            PropertyConfigurator.configure(log4j.getAbsolutePath());
-            LOGGER.info(buildInfo);
-        } else {
-            try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
-                PropertyConfigurator.configure(inputStream);
-                LOGGER.info(buildInfo);
-                LOGGER.error("log4j.properties not found: " + log4j.getAbsolutePath() + ", using default.");
-            } catch (Exception e) {
-                System.out.println("Error: missing configuration log4j file.");
-                System.exit(-1);
-            }
-        }
+        LOGGER.info("Started Build " + getManifestInfo());
 
         new SetSettingFile().SettingFile();
-        new WebServer().start();
+        WebServer webServer = new WebServer();
+        try {
+            webServer.start();
+        } catch (Exception e) {
+            LOGGER.error(e.toString());
+            System.exit(1);
+
+        } finally {
+            webServer.stop();
+        }
     }
 
     private static String getManifestInfo() throws IOException {

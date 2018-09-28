@@ -1,7 +1,8 @@
 package crypto;
 
 import com.google.common.primitives.Bytes;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.Pair;
 
 import java.security.MessageDigest;
@@ -17,11 +18,10 @@ public class Crypto {
 
     public static final byte ADDRESS_VERSION = 15;
     public static final byte AT_ADDRESS_VERSION = 23;
-    static Logger LOGGER = Logger.getLogger(Crypto.class.getName());
+    static Logger LOGGER = LoggerFactory.getLogger(Crypto.class);
     private static Crypto instance;
 
     private Crypto() {
-
     }
 
     public static Crypto getInstance() {
@@ -166,7 +166,6 @@ public class Crypto {
                 //{
                 List<Byte> addressList = new ArrayList<>();
 
-
                 addressList.addAll(Bytes.asList(addressBytes));
 
                 //REMOVE CHECKSUM
@@ -184,11 +183,9 @@ public class Crypto {
                 checkSumTwo[2] = digest[2];
                 checkSumTwo[3] = digest[3];
 
-
                 return Arrays.equals(checkSum, checkSumTwo);
                 //}
             }
-
             return false;
         } catch (Exception e) {
             //ERROR DECODING
@@ -215,5 +212,4 @@ public class Crypto {
             return false;
         }
     }
-
 }

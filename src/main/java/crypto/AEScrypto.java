@@ -1,7 +1,6 @@
 package crypto;
 
 
-import org.apache.log4j.Logger;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -9,10 +8,12 @@ import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AEScrypto {
 
-    static Logger LOGGER = Logger.getLogger(AEScrypto.class.getName());
+    static Logger LOGGER = LoggerFactory.getLogger(AEScrypto.class);
     private static byte[] ivconst = new byte[]{6, 4, 3, 8, 1, 2, 1, 2, 7, 2, 3, 8, 5, 7, 1, 1};
 
     public static byte[] dataEncrypt(byte[] data, byte[] myPrivateKey, byte[] theirPublicKey) {
