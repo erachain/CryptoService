@@ -2,7 +2,6 @@ package webserver;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
 import crypto.Base58;
 import crypto.Crypto;
 import crypto.Ed25519;
@@ -20,9 +19,11 @@ import webserver.ApiCrypto;
 import webserver.SetSettingFile;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -270,11 +271,41 @@ public class ApiCryptoTest extends SetSettingFile {
 
         // --- SET VALUES
         String title = "9160010011";
-        String message = "data text";
-        double amount = 1500.33;
+        long orderDate = System.currentTimeMillis();
+        String orderNumber = "ORDER #1";
+        String orderUser = title;
+        double orderAmount = 1500.33;
+        String details = "Оплата интернет заказа. НДС не обалагается";
         byte encrypt = 0;
+        String newDetails = "";
+        try {
+            byte[] ptext = details.getBytes("UTF-8");
+
+            newDetails = new String(ptext, StandardCharsets.UTF_8);
+            System.out.println("--> " + newDetails);
+        } catch (UnsupportedEncodingException e) {
+            System.out.println(e);
+        }
+
+        ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(details);
+        System.out.println("ВЫВОД --> " + byteBuffer.toString());
+
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put("data", orderDate);
+        jsonObj.put("order", orderNumber);
+        jsonObj.put("user", orderUser);
+        jsonObj.put("curr", "643");
+        jsonObj.put("sum", orderAmount);
+        jsonObj.put("title", "COINS STORE INVOICE");
+        jsonObj.put("details", newDetails);
+        jsonObj.put("description", "Монеты из драгоценных металлов");
+        jsonObj.put("expire", 35);
+
+        String message = jsonObj.toJSONString();
+        System.out.println(message);
+
         // ---
-        BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
+        BigDecimal bigAmount = new BigDecimal(orderAmount, MathContext.DECIMAL64);
         System.out.println("BigDecimal: " + bigAmount);
 
         SendTX tx = new SendTX(publicKeyString, recipient, title, message,

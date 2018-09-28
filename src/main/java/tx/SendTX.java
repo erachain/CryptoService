@@ -24,6 +24,7 @@ public class SendTX {
     private static final int ENCRYPTED_LENGTH = 1;
     private static final int TYPE_LENGTH = 4;
     private static final int HASH_LENGTH = 32;
+    private static final int SCALE_MASK = 31;
     private byte[] encrypted;
     private byte[] isText;
     private byte[] creator;
@@ -53,7 +54,7 @@ public class SendTX {
         } else {
             type[2] = (byte) -127;
         }
-        if ( head != null || data != null ) {
+        if (head != null || data != null) {
             type[3] = (byte) 0;
         } else {
             type[2] = (byte) -127;
@@ -197,32 +198,29 @@ public class SendTX {
             keyBytes = Bytes.ensureCapacity(keyBytes, KEY_LENGTH, 0);
             data = Bytes.concat(data, keyBytes);
 
-            //WRITE AMOUNT
-            //byte[] amountBytes = Longs.toByteArray(this.amount.unscaledValue().longValue());
-            //amountBytes = Bytes.ensureCapacity(amountBytes, AMOUNT_LENGTH, 0);
-
-            int different_scale = this.amount.scale() - 8;
+            // CALCULATE ACCURACY of AMOUNT
+            int different_scale = this.amount.scale() - AMOUNT_DEFAULT_SCALE;
             BigDecimal amountBase;
             if (different_scale != 0) {
                 // RESCALE AMOUNT
                 amountBase = this.amount.scaleByPowerOfTen(different_scale);
                 if (different_scale < 0)
-                    different_scale += 31 + 1;
+                    different_scale += SCALE_MASK + 1;
 
-                // WRITE ACCURACY of AMMOUNT
+                // WRITE ACCURACY of AMOUNT
                 data[3] = (byte) (data[3] | different_scale);
             } else {
                 amountBase = this.amount;
             }
 
-            byte[] amountBytes = this.amount.unscaledValue().toByteArray();
-            byte[] fill = new byte[AMOUNT_LENGTH - amountBytes.length];
+            //WRITE AMOUNT
+            byte[] amountBytes = Longs.toByteArray(amountBase.unscaledValue().longValue());
+            amountBytes = Bytes.ensureCapacity(amountBytes, AMOUNT_LENGTH, 0);
 
-
-            amountBytes = Bytes.concat(fill, amountBytes);
-
+            //byte[] amountBytes = this.amount.unscaledValue().toByteArray();
+            //byte[] fill = new byte[AMOUNT_LENGTH - amountBytes.length];
+            //amountBytes = Bytes.concat(fill, amountBytes);
             data = Bytes.concat(data, amountBytes);
-            data[3] = (byte) different_scale;
         }
 
         // WRITE HEAD
