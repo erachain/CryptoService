@@ -44,7 +44,7 @@ public class SendTX {
     }
 
     public SendTX(String creator, String recipient, String head, String data, BigDecimal amount, long timestamp,
-                  long key, byte feePow) {
+                  long key, byte feePow, byte encrypt) {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
         type[1] = (byte) 1;
@@ -59,7 +59,7 @@ public class SendTX {
             type[2] = (byte) -127;
         }
         this.port = 9066;
-        this.setTX((byte) 0, (byte) 1, creator, recipient, type, head, data, amount, timestamp, key, feePow);
+        this.setTX(encrypt, (byte) 1, creator, recipient, type, head, data, amount, timestamp, key, feePow);
     }
 
     private void setTX(byte encrypted, byte isText, String creator, String recipient, byte[] type, String head,
@@ -198,10 +198,12 @@ public class SendTX {
             data = Bytes.concat(data, keyBytes);
 
             //WRITE AMOUNT
-            byte[] amountBytes = Longs.toByteArray(this.amount.unscaledValue().longValue());
-            amountBytes = Bytes.ensureCapacity(amountBytes, AMOUNT_LENGTH, 0);
+            //byte[] amountBytes = Longs.toByteArray(this.amount.unscaledValue().longValue());
+            //amountBytes = Bytes.ensureCapacity(amountBytes, AMOUNT_LENGTH, 0);
+            byte[] amountBytes = this.amount.unscaledValue().toByteArray();
+            byte[] fill = new byte[AMOUNT_LENGTH - amountBytes.length];
+            amountBytes = Bytes.concat(fill, amountBytes);
             data = Bytes.concat(data, amountBytes);
-
         }
 
         // WRITE HEAD

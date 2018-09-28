@@ -22,6 +22,7 @@ ext {
     bouncycastleVersion = '1.60'
     guavaVersion = '26.0-jre'
     jsonsimpleVersion = '1.1.1'
+    commonsVersion = '3.6'
     springbootVersion = '2.0.4.RELEASE'
     springVersion = '5.0.8.RELEASE'
     junitVersion = '4.12'
@@ -63,7 +64,6 @@ sourceSets {
         java {
             srcDir("src/main")
         }
-
     }
     test {
         java {
@@ -92,6 +92,7 @@ dependencies {
     compile "org.bouncycastle:bcprov-jdk15on:${bouncycastleVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
     compile "com.googlecode.json-simple:json-simple:${jsonsimpleVersion}"
+    compile "commons-net:commons-net:${commonsVersion}"
 
     compile "org.springframework.boot:spring-boot:${springbootVersion}"
     compile "org.springframework:spring-webmvc:${springVersion}"

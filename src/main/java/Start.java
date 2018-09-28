@@ -11,7 +11,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class Start {
-    final static private Logger LOGGER = LoggerFactory.getLogger(Start.class.getName());
+    final static private Logger LOGGER = LoggerFactory.getLogger(Start.class);
 
     public static void main(String args[]) throws Exception {
         LOGGER.info("Started Build " + getManifestInfo());

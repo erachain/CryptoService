@@ -21,6 +21,7 @@ import webserver.SetSettingFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
@@ -257,14 +258,30 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void Sometest2() {
+        String creator = "7QvFWev7ijoCoPruHj7WtRvJHtKcFySeMe";
+        String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
         String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
+        String privateKeyString = "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr";
+
         byte[] publicKey = Base58.decode(publicKeyString);
-        byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
+        byte[] privateKey = Base58.decode(privateKeyString);
+        //long timestamp = System.currentTimeMillis();
+        long timestamp = ntp.NTP.getTime();
 
-        SendTX tx = new SendTX(publicKeyString, "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
-                "head text234", "data text234", BigDecimal.ONE, System.currentTimeMillis(),2l,(byte)0);
+        // --- SET VALUES
+        String title = "9160010011";
+        String message = "data text";
+        double amount = 1500.33;
+        byte encrypt = 0;
+        // ---
+        BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
+        System.out.println("BigDecimal: " + bigAmount);
 
-        tx.sign(new Pair<byte[], byte[]>(privateKey,publicKey));
+        SendTX tx = new SendTX(publicKeyString, recipient, title, message,
+                bigAmount,
+                timestamp,2L, (byte)0, encrypt);
+
+        tx.sign(new Pair<>(privateKey,publicKey));
         System.out.println(Base58.encode(tx.toBytes(true)));
     }
 
