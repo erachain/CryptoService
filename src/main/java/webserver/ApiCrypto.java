@@ -14,6 +14,7 @@ import utils.Pair;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -26,7 +27,6 @@ public class ApiCrypto extends SetSettingFile {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
-    final StatusSending statusSending = new StatusSending();
     @GET
     public Response Default() {
         JSONObject jsonObject = new JSONObject();
@@ -274,17 +274,6 @@ public class ApiCrypto extends SetSettingFile {
                 .build();
     }
 
-    private static class StatusSending {
-        public Boolean status;
-    }
-
-    public Boolean getStatus() {
-        return this.status = status;
-    }
-
-    public Boolean setStatus() {
-        return this.status = false;
-    }
     /**
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      * If status true all telegram will sending. Status false suspending thread sending telegram.
@@ -476,6 +465,33 @@ public class ApiCrypto extends SetSettingFile {
         }
 
         jsonObject.put("encodeBase58", Base58.encode(bytes));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    @Deprecated
+    @POST
+    @Path("generateByteCode")
+    public Response generateByteCode(String value) throws Exception {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
+
+        String creator = jsonParse.get("creator").toString();
+        String recipient = jsonParse.get("recipient").toString();
+        String head = jsonParse.get("head").toString();
+        String data = jsonParse.get("data").toString();
+        BigDecimal amount = new BigDecimal(String.valueOf(jsonParse.get("creator")));
+        Long timestamp = Long.parseLong(jsonParse.get("timestamp").toString());
+        Long key = Long.parseLong(jsonParse.get("long").toString());
+        byte[] feepow = new byte[]{0};
+        byte[] encrypt = Boolean.parseBoolean(jsonParse.get("long").toString()) ? new byte[]{0} : new byte[]{1};
+
+        //new SendTX();
+
+
+        JSONObject jsonObject = new JSONObject();
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(jsonObject.toJSONString())
