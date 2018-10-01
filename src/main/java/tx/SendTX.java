@@ -57,7 +57,7 @@ public class SendTX {
         if (head != null || data != null) {
             type[3] = (byte) 0;
         } else {
-            type[2] = (byte) -127;
+            type[3] = (byte) -127;
         }
         this.port = 9066;
         this.setTX(encrypt, (byte) 1, creator, recipient, type, head, data, amount, timestamp, key, feePow);

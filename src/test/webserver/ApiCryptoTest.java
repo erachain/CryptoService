@@ -262,7 +262,7 @@ public class ApiCryptoTest extends SetSettingFile {
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
         String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
         String privateKeyString = "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr";
-        byte encrypt = 0;
+        byte encrypt = 1;
 
         byte[] publicKey = Base58.decode(publicKeyString);
         byte[] privateKey = Base58.decode(privateKeyString);
@@ -271,13 +271,13 @@ public class ApiCryptoTest extends SetSettingFile {
 
         // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
-        String orderNumber = "ORDER #11";
+        String orderNumber = "ORDER #12";
         String orderUser = title;
-        double orderAmount = 513.33;
+        double orderAmount = 515.33;
         long orderAssetKey = 643L;
         String orderTitle = "COINS STORE INVOICE";
-        String orderDetails = "Набор монет из драгоценных металлов";
-        String orderDescription = "Оплата интернет заказа. НДС не облагается.";
+        String orderDetails = "РќР°Р±РѕСЂ РјРѕРЅРµС‚ РёР· РґСЂР°РіРѕС†РµРЅРЅС‹С… РјРµС‚Р°Р»Р»РѕРІ";
+        String orderDescription = "РћРїР»Р°С‚Р° РёРЅС‚РµСЂРЅРµС‚ Р·Р°РєР°Р·Р°. РќР”РЎ РЅРµ РѕР±Р»Р°РіР°РµС‚СЃСЏ.";
 
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
