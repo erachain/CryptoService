@@ -10,10 +10,13 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tx.SendTX;
 import utils.Pair;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -26,7 +29,6 @@ public class ApiCrypto extends SetSettingFile {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
-    final StatusSending statusSending = new StatusSending();
     @GET
     public Response Default() {
         JSONObject jsonObject = new JSONObject();
@@ -274,17 +276,6 @@ public class ApiCrypto extends SetSettingFile {
                 .build();
     }
 
-    private static class StatusSending {
-        public Boolean status;
-    }
-
-    public Boolean getStatus() {
-        return this.status = status;
-    }
-
-    public Boolean setStatus() {
-        return this.status = false;
-    }
     /**
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      * If status true all telegram will sending. Status false suspending thread sending telegram.
@@ -476,6 +467,56 @@ public class ApiCrypto extends SetSettingFile {
         }
 
         jsonObject.put("encodeBase58", Base58.encode(bytes));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    @Deprecated
+    @POST
+    @Path("generateByteCode")
+    public Response generateByteCode(String value) throws Exception {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
+
+        String recipient = jsonParse.get("recipient").toString();
+        String title = jsonParse.get("title").toString();
+        String orderNumber = jsonParse.get("orderNumber").toString();
+        String orderUser = jsonParse.get("orderUser").toString();
+        String details = jsonParse.get("details").toString();
+        String description = jsonParse.get("description").toString();
+        String expire = jsonParse.get("expire").toString();
+        Double amount = new Double(String.valueOf(jsonParse.get("amount")));
+        Long timestamp = Long.parseLong(String.valueOf(System.currentTimeMillis()));
+        byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
+        String publicKey = jsonParse.get("publicKey").toString();
+        String privateKey = jsonParse.get("privateKey").toString();
+
+        JSONObject jsonMessage = new JSONObject();
+
+        jsonMessage.put("data", System.currentTimeMillis());
+        jsonMessage.put("order", orderNumber);
+        jsonMessage.put("user", orderUser);
+        jsonMessage.put("curr", "643");
+        jsonMessage.put("sum", amount);
+        jsonMessage.put("title", title);
+        jsonMessage.put("details", details);
+        jsonMessage.put("description", description);
+        jsonMessage.put("expire", expire);
+
+        BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
+        System.out.println("BigDecimal: " + bigAmount);
+
+        SendTX tx = new SendTX(publicKey, recipient, title, jsonMessage.toJSONString(),
+                bigAmount,
+                timestamp, 2L, (byte) 0, encrypt);
+
+        tx.sign(new Pair<>(Base58.decode(privateKey), Base58.decode(publicKey)));
+        String byteCode = Base58.encode(tx.toBytes(true));
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("byteCode", byteCode);
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(jsonObject.toJSONString())
