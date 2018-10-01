@@ -10,7 +10,7 @@ import java.net.InetAddress;
 
 public final class NTP {
     private static final long TIME_TILL_UPDATE = 1000 * 60 * 60 * 12;
-    private static final String NTP_SERVER = "pool.ntp.org";
+    private static final String NTP_SERVER = "ru.pool.ntp.org";
     static Logger LOGGER = LoggerFactory.getLogger(NTP.class);
     private static long lastUpdate = 0;
     private static long offset = 0;

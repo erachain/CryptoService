@@ -267,23 +267,24 @@ public class ApiCryptoTest extends SetSettingFile {
         byte[] publicKey = Base58.decode(publicKeyString);
         byte[] privateKey = Base58.decode(privateKeyString);
         long timestamp = ntp.NTP.getTime();
-        String title = "9160010011";
+        String title = "9067124002";
 
         // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
         String orderNumber = "ORDER #1";
         String orderUser = title;
-        double orderAmount = 1500.33;
-        String orderDetails = "РћРїР»Р°С‚Р° РёРЅС‚РµСЂРЅРµС‚ Р·Р°РєР°Р·Р°. РќР”РЎ РЅРµ РѕР±Р»Р°РіР°РµС‚СЃСЏ.";
+        double orderAmount = 1501.33;
+        String orderDetails = "Оплата интернет заказа. НДС не облагается.";
         String orderTitle = "COINS STORE INVOICE";
-        String orderDescription = "РќР°Р±РѕСЂ РјРѕРЅРµС‚ РёР· РґСЂР°РіРѕС†РµРЅРЅС‹С… РјРµС‚Р°Р»Р»РѕРІ";
+        String orderDescription = "Набор монет из драгоценных металлов";
+        long orderAssetKey = 643L;
 
 
         JSONObject jsonObj = new JSONObject();
-        jsonObj.put("data", orderDate);
+        jsonObj.put("date", orderDate);
         jsonObj.put("order", orderNumber);
         jsonObj.put("user", orderUser);
-        jsonObj.put("curr", "643");
+        jsonObj.put("curr", orderAssetKey);
         jsonObj.put("sum", orderAmount);
         jsonObj.put("title", orderTitle);
         jsonObj.put("details", orderDetails);
@@ -296,7 +297,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
         SendTX tx = new SendTX(publicKeyString, recipient, title, message,
                 BigDecimal.valueOf(orderAmount),
-                timestamp,2L, (byte)0, encrypt);
+                timestamp, orderAssetKey, (byte)0, encrypt);
 
         tx.sign(new Pair<>(privateKey,publicKey));
         System.out.println("Bytecode to send:\n" + Base58.encode(tx.toBytes(true)));

@@ -48,7 +48,7 @@ public class SendTX {
                   long key, byte feePow, byte encrypt) {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
-        type[1] = (byte) 1;
+        type[1] = (byte) 0;
         if (amount.compareTo(new BigDecimal(0)) > 0) {
             type[2] = (byte) 0;
         } else {
@@ -194,7 +194,7 @@ public class SendTX {
         if (!this.amount.equals(BigDecimal.ZERO)) {
 
             // WRITE KEY
-            byte[] keyBytes = Longs.toByteArray(2L);
+            byte[] keyBytes = Longs.toByteArray(key);
             keyBytes = Bytes.ensureCapacity(keyBytes, KEY_LENGTH, 0);
             data = Bytes.concat(data, keyBytes);
 
