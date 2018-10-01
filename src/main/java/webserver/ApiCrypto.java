@@ -473,7 +473,38 @@ public class ApiCrypto extends SetSettingFile {
                 .build();
     }
 
-    @Deprecated
+    /**
+     * Generate byte code.
+     *
+     * @param value JSON string contains param for generate byte code
+     * @return JSON string with byte code
+     *
+     * <h2>Example request</h2>
+     * {
+     * "recipient": "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
+     * "title": "9160010011",
+     * "orderNumber": "ORDER #1",
+     * "orderUser": 9029708556,
+     * "details": "Оплата интернет заказа. НДС не обалагается",
+     * "description": "заказ",
+     * "expire": 35,
+     * "amount": 15.06,
+     * "encrypt": false,
+     * "keyAsset":3,
+     * "publicKey": "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV",
+     * "privateKey": "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr"
+     * }
+     *
+     * <h2>Example response</h2>
+     * {
+     * "byteCode": "65EM4ncMSGkeqTEU4X5g21Mb78Z7sYoGRQzdjasXCuoPWDmxVUVR6dsemqFGQXS4E37ap7jSNwmKTtBfHUhzd9ZHvN
+     * jgmmFmXBXwFBmTgYFccsDR3US5977NwaoZXryGy8DoMUqSyEwbbjQPtofi7qqv2ShxoZfiMo3V6h1aaAPNLcTnSm9cyrRFh2ukDS1Hf
+     * AC9QQPu7fiHVXnS6gefCgmfM6Q7zKetRhH6XYf4Md8JkTw3d6V5Z2gcp1s1h6aNUiVTyJ68BEvi7eaMNEzsPHmjZEhoZdegLwMnBSGu
+     * qrddSRLjyQybGEL2HgWMbV5Nd6wzabRCrgXSKTXSiEEokk3wp4W1MR45v9dutwihmWye5xwu1vhyBFWJ6LrmKnuCHQchjX2x3koPv2M
+     * EQeT6tGZBPHRVPLT2xxbsaRZuRbExEXpM3BaENEQCwEsUiHgYH4V7tkjazDMwqKULmsWLwaFmdVjv6H6CkdPE1ti3LXtEDdSFZxRh5v
+     * cv29XuTx1xnr2pogF9v4WVSdZJcyyp72WoTZoGWMDtTsL4pphNKXQR2Qrc"
+     * }
+     */
     @POST
     @Path("generateByteCode")
     public Response generateByteCode(String value) throws Exception {
@@ -492,13 +523,13 @@ public class ApiCrypto extends SetSettingFile {
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
         String publicKey = jsonParse.get("publicKey").toString();
         String privateKey = jsonParse.get("privateKey").toString();
-
+        Long key = Long.parseLong(jsonParse.get("keyAsset").toString());
         JSONObject jsonMessage = new JSONObject();
 
         jsonMessage.put("data", System.currentTimeMillis());
         jsonMessage.put("order", orderNumber);
         jsonMessage.put("user", orderUser);
-        jsonMessage.put("curr", "643");
+        jsonMessage.put("curr", key);
         jsonMessage.put("sum", amount);
         jsonMessage.put("title", title);
         jsonMessage.put("details", details);
@@ -510,7 +541,7 @@ public class ApiCrypto extends SetSettingFile {
 
         SendTX tx = new SendTX(publicKey, recipient, title, jsonMessage.toJSONString(),
                 bigAmount,
-                timestamp, 2L, (byte) 0, encrypt);
+                timestamp, key, (byte) 0, encrypt);
 
         tx.sign(new Pair<>(Base58.decode(privateKey), Base58.decode(publicKey)));
         String byteCode = Base58.encode(tx.toBytes(true));
