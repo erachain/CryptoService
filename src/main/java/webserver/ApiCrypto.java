@@ -10,11 +10,13 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tx.SendTX;
 import utils.Pair;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -478,20 +480,43 @@ public class ApiCrypto extends SetSettingFile {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
 
-        String creator = jsonParse.get("creator").toString();
         String recipient = jsonParse.get("recipient").toString();
-        String head = jsonParse.get("head").toString();
-        String data = jsonParse.get("data").toString();
-        BigDecimal amount = new BigDecimal(String.valueOf(jsonParse.get("creator")));
-        Long timestamp = Long.parseLong(jsonParse.get("timestamp").toString());
-        Long key = Long.parseLong(jsonParse.get("long").toString());
-        byte[] feepow = new byte[]{0};
-        byte[] encrypt = Boolean.parseBoolean(jsonParse.get("long").toString()) ? new byte[]{0} : new byte[]{1};
+        String title = jsonParse.get("title").toString();
+        String orderNumber = jsonParse.get("orderNumber").toString();
+        String orderUser = jsonParse.get("orderUser").toString();
+        String details = jsonParse.get("details").toString();
+        String description = jsonParse.get("description").toString();
+        String expire = jsonParse.get("expire").toString();
+        Double amount = new Double(String.valueOf(jsonParse.get("amount")));
+        Long timestamp = Long.parseLong(String.valueOf(System.currentTimeMillis()));
+        byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
+        String publicKey = jsonParse.get("publicKey").toString();
+        String privateKey = jsonParse.get("privateKey").toString();
 
-        //new SendTX();
+        JSONObject jsonMessage = new JSONObject();
 
+        jsonMessage.put("data", System.currentTimeMillis());
+        jsonMessage.put("order", orderNumber);
+        jsonMessage.put("user", orderUser);
+        jsonMessage.put("curr", "643");
+        jsonMessage.put("sum", amount);
+        jsonMessage.put("title", title);
+        jsonMessage.put("details", details);
+        jsonMessage.put("description", description);
+        jsonMessage.put("expire", expire);
+
+        BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
+        System.out.println("BigDecimal: " + bigAmount);
+
+        SendTX tx = new SendTX(publicKey, recipient, title, jsonMessage.toJSONString(),
+                bigAmount,
+                timestamp, 2L, (byte) 0, encrypt);
+
+        tx.sign(new Pair<>(Base58.decode(privateKey), Base58.decode(publicKey)));
+        String byteCode = Base58.encode(tx.toBytes(true));
 
         JSONObject jsonObject = new JSONObject();
+        jsonObject.put("byteCode", byteCode);
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(jsonObject.toJSONString())
