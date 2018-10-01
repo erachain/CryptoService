@@ -271,14 +271,13 @@ public class ApiCryptoTest extends SetSettingFile {
 
         // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
-        String orderNumber = "ORDER #1";
+        String orderNumber = "ORDER #11";
         String orderUser = title;
-        double orderAmount = 1501.33;
-        String orderDetails = "Оплата интернет заказа. НДС не облагается.";
-        String orderTitle = "COINS STORE INVOICE";
-        String orderDescription = "Набор монет из драгоценных металлов";
+        double orderAmount = 513.33;
         long orderAssetKey = 643L;
-
+        String orderTitle = "COINS STORE INVOICE";
+        String orderDetails = "Набор монет из драгоценных металлов";
+        String orderDescription = "Оплата интернет заказа. НДС не облагается.";
 
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
@@ -296,7 +295,8 @@ public class ApiCryptoTest extends SetSettingFile {
         // ---
 
         SendTX tx = new SendTX(publicKeyString, recipient, title, message,
-                BigDecimal.valueOf(orderAmount),
+                BigDecimal.ZERO,
+                //BigDecimal.valueOf(orderAmount),
                 timestamp, orderAssetKey, (byte)0, encrypt);
 
         tx.sign(new Pair<>(privateKey,publicKey));
