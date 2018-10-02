@@ -262,7 +262,7 @@ public class ApiCryptoTest extends SetSettingFile {
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
         String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
         String privateKeyString = "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr";
-        byte encrypt = 1;
+        byte encrypt = 0;
 
         byte[] publicKey = Base58.decode(publicKeyString);
         byte[] privateKey = Base58.decode(privateKeyString);

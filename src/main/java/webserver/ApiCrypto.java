@@ -345,7 +345,7 @@ public class ApiCrypto extends SetSettingFile {
                             String.valueOf(random.nextInt(999 - 100) + 100) +
                             String.valueOf(random.nextInt(9999 - 1000) + 1000);
 
-                    message.put("data", date);
+                    message.put("date", date);
                     message.put("order", random.nextInt(52193287));
                     message.put("user", user);
                     message.put("curr", "643");
@@ -485,8 +485,8 @@ public class ApiCrypto extends SetSettingFile {
      * "title": "9160010011",
      * "orderNumber": "ORDER #1",
      * "orderUser": 9029708556,
-     * "details": "Оплата интернет заказа. НДС не обалагается",
-     * "description": "заказ",
+     * "details": "заказ",
+     * "description": "Оплата интернет заказа. НДС не облагается.",
      * "expire": 35,
      * "amount": 15.06,
      * "encrypt": false,
@@ -519,14 +519,15 @@ public class ApiCrypto extends SetSettingFile {
         String description = jsonParse.get("description").toString();
         String expire = jsonParse.get("expire").toString();
         Double amount = new Double(String.valueOf(jsonParse.get("amount")));
-        Long timestamp = Long.parseLong(String.valueOf(System.currentTimeMillis()));
+        //Long timestamp = Long.parseLong(String.valueOf(System.currentTimeMillis()));
+        Long timestamp = ntp.NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
         String publicKey = jsonParse.get("publicKey").toString();
         String privateKey = jsonParse.get("privateKey").toString();
         Long key = Long.parseLong(jsonParse.get("keyAsset").toString());
         JSONObject jsonMessage = new JSONObject();
 
-        jsonMessage.put("data", System.currentTimeMillis());
+        jsonMessage.put("date", System.currentTimeMillis());
         jsonMessage.put("order", orderNumber);
         jsonMessage.put("user", orderUser);
         jsonMessage.put("curr", key);

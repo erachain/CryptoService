@@ -23,7 +23,7 @@ public final class NTP {
             updateOffSet();
             lastUpdate = System.currentTimeMillis();
 
-            if (offset != 0l) {
+            if (offset != 0L) {
                 //LOG OFFSET
                 LOGGER.info("Adjusting time with %offset% milliseconds.".replace("%offset%", String.valueOf(offset)));
             }
@@ -55,7 +55,7 @@ public final class NTP {
             }
         } catch (Exception e) {
             //ERROR GETTING OFFSET
-            LOGGER.error("Error getting offset", e);
+            LOGGER.error("Error getting time offset: {}, adjusting time with {} milliseconds.", e.getMessage(), offset);
         }
 
         client.close();
