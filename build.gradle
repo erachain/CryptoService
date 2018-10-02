@@ -9,6 +9,16 @@ buildscript {
 
 plugins {
     id 'java'
+    id 'idea'
+}
+
+allprojects {
+    idea {
+        module {
+            outputDir file("$buildDir/classes/main")
+            testOutputDir file("$buildDir/classes/test")
+        }
+    }
 }
 
 ext {
