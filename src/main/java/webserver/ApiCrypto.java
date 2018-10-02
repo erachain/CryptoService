@@ -17,6 +17,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -129,7 +130,7 @@ public class ApiCrypto extends SetSettingFile {
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] privateKey = Base58.decode(jsonObject.get("privateKey").toString());
 
-        String result = Base58.encode(AEScrypto.dataEncrypt(message.getBytes(), privateKey, publicKey));
+        String result = Base58.encode(AEScrypto.dataEncrypt(message.getBytes(Charset.forName("UTF-8")), privateKey, publicKey));
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("encrypted", result);
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
@@ -517,19 +518,19 @@ public class ApiCrypto extends SetSettingFile {
         String orderUser = jsonParse.get("orderUser").toString();
         String details = jsonParse.get("details").toString();
         String description = jsonParse.get("description").toString();
-        String expire = jsonParse.get("expire").toString();
-        Double amount = new Double(String.valueOf(jsonParse.get("amount")));
-        //Long timestamp = Long.parseLong(String.valueOf(System.currentTimeMillis()));
-        Long timestamp = ntp.NTP.getTime();
+        int expire = Integer.valueOf(jsonParse.get("expire").toString());
+        //  double amount = new Double(String.valueOf(jsonParse.get("amount")));
+        double amount = Double.valueOf(String.valueOf(jsonParse.get("amount")));
+        long timestamp = ntp.NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
         String publicKey = jsonParse.get("publicKey").toString();
         String privateKey = jsonParse.get("privateKey").toString();
-        Long key = Long.parseLong(jsonParse.get("keyAsset").toString());
+        long key = Long.parseLong(jsonParse.get("keyAsset").toString());
         JSONObject jsonMessage = new JSONObject();
 
         jsonMessage.put("date", System.currentTimeMillis());
         jsonMessage.put("order", orderNumber);
-        jsonMessage.put("user", orderUser);
+        jsonMessage.put("user", title);
         jsonMessage.put("curr", key);
         jsonMessage.put("sum", amount);
         jsonMessage.put("title", title);
@@ -540,7 +541,7 @@ public class ApiCrypto extends SetSettingFile {
         BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
         System.out.println("BigDecimal: " + bigAmount);
 
-        SendTX tx = new SendTX(publicKey, recipient, title, jsonMessage.toJSONString(),
+        SendTX tx = new SendTX(publicKey,privateKey, recipient, title, jsonMessage.toJSONString(),
                 bigAmount,
                 timestamp, key, (byte) 0, encrypt);
 

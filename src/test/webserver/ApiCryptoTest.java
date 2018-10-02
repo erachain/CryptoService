@@ -294,7 +294,8 @@ public class ApiCryptoTest extends SetSettingFile {
         System.out.println(message);
         // ---
 
-        SendTX tx = new SendTX(publicKeyString, recipient, title, message,
+
+        SendTX tx = new SendTX(publicKeyString, privateKeyString, recipient, title, message,
                 BigDecimal.ZERO,
                 //BigDecimal.valueOf(orderAmount),
                 timestamp, orderAssetKey, (byte)0, encrypt);

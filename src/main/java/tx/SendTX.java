@@ -3,12 +3,16 @@ package tx;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import crypto.AEScrypto;
 import crypto.Base58;
 import crypto.Crypto;
+import org.bouncycastle.jcajce.provider.symmetric.AES;
 import utils.Pair;
+import webserver.ApiCrypto;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -39,12 +43,14 @@ public class SendTX {
     private long key;
     private byte feePow;
     private int port;
+    private byte[] privateKey;
+
 
     SendTX(byte[] data) {
         this.parseTX(data);
     }
 
-    public SendTX(String creator, String recipient, String head, String data, BigDecimal amount, long timestamp,
+    public SendTX(String creator, String privateKeyString, String recipient, String head, String data, BigDecimal amount, long timestamp,
                   long key, byte feePow, byte encrypt) {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
@@ -60,11 +66,12 @@ public class SendTX {
             type[3] = (byte) -127;
         }
         this.port = 9066;
-        this.setTX(encrypt, (byte) 1, creator, recipient, type, head, data, amount, timestamp, key, feePow);
+        this.setTX(encrypt, (byte) 1, creator, privateKeyString, recipient, type, head, data, amount, timestamp, key, feePow);
     }
 
-    private void setTX(byte encrypted, byte isText, String creator, String recipient, byte[] type, String head,
+    private void setTX(byte encrypted, byte isText, String creator, String privateKeyString, String recipient, byte[] type, String head,
                        String data, BigDecimal amount, long timestamp, long key, byte feePow) {
+        this.privateKey = Base58.decode(privateKeyString);
         this.type = type;
         this.timestamp = timestamp;
         this.reference = (long) 0;
@@ -75,8 +82,8 @@ public class SendTX {
         this.amount = amount;
         this.head = head;
         this.data = data;
-        this.encrypted = new byte[] {encrypted};
-        this.isText = new byte[] {isText};
+        this.encrypted = new byte[]{encrypted};
+        this.isText = new byte[]{isText};
     }
 
     private void parseTX(byte[] data) {
@@ -232,12 +239,21 @@ public class SendTX {
 
         if (this.data != null) {
             // WRITE DATA SIZE
-            byte[] dataBytes = this.data.getBytes(StandardCharsets.UTF_8);
-            byte[] dataSizeBytes = Ints.toByteArray(dataBytes.length);
+
+            byte[] dataBytes = this.data.getBytes(Charset.forName("UTF-8"));
+
+            byte[] dataByte = new byte[0];
+
+            if (Arrays.equals(this.encrypted,new byte[]{1})) {
+                dataByte = new AEScrypto().dataEncrypt(dataBytes, privateKey, creator);
+            }
+
+
+            byte[] dataSizeBytes = Ints.toByteArray(dataByte.length);
             data = Bytes.concat(data, dataSizeBytes);
 
             // WRITE DATA
-            data = Bytes.concat(data, dataBytes);
+            data = Bytes.concat(data, dataByte);
 
             // WRITE ENCRYPTED
             data = Bytes.concat(data, this.encrypted);
