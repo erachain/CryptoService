@@ -6,9 +6,7 @@ import com.google.common.primitives.Longs;
 import crypto.AEScrypto;
 import crypto.Base58;
 import crypto.Crypto;
-import org.bouncycastle.jcajce.provider.symmetric.AES;
 import utils.Pair;
-import webserver.ApiCrypto;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -246,7 +244,9 @@ public class SendTX {
 
             if (Arrays.equals(this.encrypted,new byte[]{1})) {
                 dataByte = new AEScrypto().dataEncrypt(dataBytes, privateKey, creator);
-            }
+            } else
+                dataByte = dataBytes;
+
 
 
             byte[] dataSizeBytes = Ints.toByteArray(dataByte.length);
