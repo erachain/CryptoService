@@ -481,18 +481,20 @@ public class ApiCrypto extends SetSettingFile {
      *
      * <h2>Example request</h2>
      * {
-     * "recipient": "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
-     * "title": "9160010011",
-     * "orderNumber": "ORDER #1",
-     * "orderUser": 9029708556,
-     * "details": "заказ",
-     * "description": "Оплата интернет заказа. НДС не облагается.",
-     * "expire": 35,
-     * "amount": 15.06,
-     * "encrypt": false,
-     * "keyAsset":3,
-     * "publicKey": "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV",
-     * "privateKey": "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr"
+     *   "recipient": "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
+     *   "creator":"7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx",
+     *   "title": "9160010011",
+     *   "orderNumber": "ORDER #1",
+     *   "orderUser": "9160010011",
+     *   "details": "Оплата интернет заказа. НДС не обалагается",
+     *   "description": "заказ",
+     *   "expire": 35,
+     *   "amount": 15.06,
+     *   "encrypt": true,
+     *   "keyAsset":643,
+     *   "publicKeyCreator": "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb",
+     *   "privateKeyCreator": "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY",
+     *   "publicKeyRecipient":"2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7"
      * }
      *
      * <h2>Example response</h2>
