@@ -16,7 +16,6 @@ import utils.Pair;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -539,7 +538,8 @@ public class ApiCrypto extends SetSettingFile {
         jsonMessage.put("description", description);
         jsonMessage.put("expire", expire);
 
-        SendTX tx = new SendTX(publicKey, privateKey, recipient, title, jsonMessage.toJSONString(),
+        SendTX tx = new SendTX(publicKeyCreator, privateKeyCreator, recipient, publicKeyRecipient,
+                title, jsonMessage.toJSONString(),
                 BigDecimal.valueOf(amount),
                 timestamp, key, (byte) 0, encrypt);
 
