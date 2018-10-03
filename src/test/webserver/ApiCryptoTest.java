@@ -259,11 +259,13 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void Sometest2() {
         // --- SET TRX HEADER VALUES
-        String creator = "7QvFWev7ijoCoPruHj7WtRvJHtKcFySeMe";
+        // FROM:
+        String creator = "7CvpXXALviZPkZ9Yn27NncLVz6SkxMA8rh";
+        String privateKeyString = "4CxLkVPC5gxZuVDsZdDnitZUYZXS9M28QAWfC6KXxrSoP4x4ckEpDnqiUbYn2drA1cSQAznDnrAGrvN6958kUwy7";
+        // TO:
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
-        String publicKeyString = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
-        String privateKeyString = "pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr";
-        byte encrypt = 0;
+        String publicKeyString = "2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7";
+        byte encrypt = 1;
 
         byte[] publicKey = Base58.decode(publicKeyString);
         byte[] privateKey = Base58.decode(privateKeyString);
@@ -272,9 +274,9 @@ public class ApiCryptoTest extends SetSettingFile {
 
         // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
-        String orderNumber = "ORDER #12";
+        String orderNumber = "ORDER #13";
         String orderUser = title;
-        double orderAmount = 515.33;
+        double orderAmount = 1.30;
         long orderAssetKey = 643L;
         String orderTitle = "COINS STORE INVOICE";
         String orderDetails = "Набор монет из драгоценных металлов";

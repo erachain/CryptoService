@@ -520,8 +520,7 @@ public class ApiCrypto extends SetSettingFile {
         String details = jsonParse.get("details").toString();
         String description = jsonParse.get("description").toString();
         int expire = Integer.valueOf(jsonParse.get("expire").toString());
-        //  double amount = new Double(String.valueOf(jsonParse.get("amount")));
-        double amount = Double.valueOf(String.valueOf(jsonParse.get("amount")));
+        double amount = Double.parseDouble(jsonParse.get("amount").toString());
         long timestamp = ntp.NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
         String publicKeyCreator = jsonParse.get("publicKeyCreator").toString();
@@ -540,11 +539,8 @@ public class ApiCrypto extends SetSettingFile {
         jsonMessage.put("description", description);
         jsonMessage.put("expire", expire);
 
-        BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
-        System.out.println("BigDecimal: " + bigAmount);
-
-        SendTX tx = new SendTX(publicKeyCreator,privateKeyCreator, recipient,publicKeyRecipient,  title, jsonMessage.toJSONString(),
-                bigAmount,
+        SendTX tx = new SendTX(publicKey, privateKey, recipient, title, jsonMessage.toJSONString(),
+                BigDecimal.valueOf(amount),
                 timestamp, key, (byte) 0, encrypt);
 
         tx.sign(new Pair<>(Base58.decode(privateKeyCreator), Base58.decode(publicKeyCreator)));
