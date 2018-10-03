@@ -486,7 +486,7 @@ public class ApiCrypto extends SetSettingFile {
      *   "title": "9160010011",
      *   "orderNumber": "ORDER #1",
      *   "orderUser": "9160010011",
-     *   "details": "Оплата интернет заказа. НДС не обалагается",
+     *   "details": "Оплата интернет заказа. НДС не облагается",
      *   "description": "заказ",
      *   "expire": 35,
      *   "amount": 15.06,

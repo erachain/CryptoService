@@ -3,10 +3,13 @@ package tx;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import crypto.AEScrypto;
 import crypto.Base58;
 import crypto.Crypto;
+import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import utils.Pair;
+import webserver.ApiCrypto;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -168,7 +171,7 @@ public class SendTX {
         }
     }
 
-    public byte[] toBytes(boolean withSign) {
+    public byte[] toBytes(boolean withSign) throws Exception {
 
         byte[] data = new byte[0];
 
@@ -246,9 +249,16 @@ public class SendTX {
 
             byte[] dataByte;
 
-            if (Arrays.equals(this.encrypted, new byte[]{1}))
-                dataByte = new AEScrypto().dataEncrypt(dataBytes, privateKeyCreator, publicKeyRecipient);
-            else
+            if (Arrays.equals(this.encrypted, new byte[]{1})) {
+                Object result = new ApiCrypto().Encrypt("{\"message\":" + this.data + ", " +
+                        "\"publicKey\":\"" + Base58.encode(publicKeyRecipient) + "\"," +
+                        "\"privateKey\":\"" + Base58.encode(privateKeyCreator) + "\"}");
+                Object encrypt = ((OutboundJaxrsResponse) result).getEntity();
+                JSONParser jsonParser = new JSONParser();
+                JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
+                dataByte = Base58.decode(jsonObject.get("encrypted").toString());
+
+            } else
                 dataByte = dataBytes;
 
 
@@ -273,7 +283,7 @@ public class SendTX {
         return data;
     }
 
-    public void sign(Pair<byte[], byte[]> keysPir) {
+    public void sign(Pair<byte[], byte[]> keysPir) throws Exception {
         this.signature = Crypto.getInstance().sign(keysPir, this.toBytes(false));
     }
 }
