@@ -11,17 +11,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import tx.SendTX;
 import utils.Pair;
-import webserver.ApiCrypto;
-import webserver.SetSettingFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -255,22 +249,27 @@ public class ApiCryptoTest extends SetSettingFile {
         }
     }
 
-    @Ignore
+    /**
+     * Test generation byte code. Custom settings creator recipient.
+     *
+     * @throws Exception
+     */
     @Test
-    public void Sometest2() {
-        // --- SET TRX HEADER VALUES
+    public void GeneratyByteCode() throws Exception {
         // FROM:
-        String creator = "7CvpXXALviZPkZ9Yn27NncLVz6SkxMA8rh";
-        String privateKeyString = "4CxLkVPC5gxZuVDsZdDnitZUYZXS9M28QAWfC6KXxrSoP4x4ckEpDnqiUbYn2drA1cSQAznDnrAGrvN6958kUwy7";
+        String creator = "7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx";
+        String privateKeyCreator = "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY";
+        String publicKeyCreator = "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb";
         // TO:
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
-        String publicKeyString = "2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7";
-        byte encrypt = 1;
+        String publicKeyRecipient = "2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7";
 
-        byte[] publicKey = Base58.decode(publicKeyString);
-        byte[] privateKey = Base58.decode(privateKeyString);
+        byte[] publicKeyCreatorByte = Base58.decode(publicKeyCreator);
+        byte[] privateKeyCreatorByte = Base58.decode(privateKeyCreator);
         long timestamp = ntp.NTP.getTime();
-        String title = "9067124002";
+
+        String title = "9029700190";
+        byte encrypt = 1;
 
         // --- SET MESSAGE VALUES
         long orderDate = System.currentTimeMillis();
@@ -281,6 +280,7 @@ public class ApiCryptoTest extends SetSettingFile {
         String orderTitle = "COINS STORE INVOICE";
         String orderDetails = "Набор монет из драгоценных металлов";
         String orderDescription = "Оплата интернет заказа. НДС не облагается.";
+        Integer expire = 35;
 
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
@@ -291,94 +291,17 @@ public class ApiCryptoTest extends SetSettingFile {
         jsonObj.put("title", orderTitle);
         jsonObj.put("details", orderDetails);
         jsonObj.put("description", orderDescription);
-        jsonObj.put("expire", 35);
+        jsonObj.put("expire", expire);
 
         String message = jsonObj.toJSONString();
         System.out.println(message);
-        // ---
 
-
-        SendTX tx = new SendTX(publicKeyString, privateKeyString, recipient, title, message,
+        SendTX tx = new SendTX(publicKeyCreator, privateKeyCreator, recipient, publicKeyRecipient, title, message,
                 BigDecimal.ZERO,
                 //BigDecimal.valueOf(orderAmount),
                 timestamp, orderAssetKey, (byte)0, encrypt);
 
-        tx.sign(new Pair<>(privateKey,publicKey));
+        tx.sign(new Pair<>(privateKeyCreatorByte, publicKeyCreatorByte));
         System.out.println("Bytecode to send:\n" + Base58.encode(tx.toBytes(true)));
-    }
-
-    @Ignore
-    @Test
-    public void Sometest() throws IOException {
-        byte[] transactionType = new byte[]{31, 0, 0, 0};
-        //  byte[] timestamp = Base58.decode(String.valueOf(System.currentTimeMillis()));
-        byte[] timestamp = longToBytes(System.currentTimeMillis());
-        byte[] reference = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
-        byte[] publicKey = Base58.decode("8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV");
-        byte[] privateKey = Base58.decode("pCN9sfvm8SQqB4m8fyrU17R7j2NYm9poerkJj9uTgMQQeygALqKPRCpUQZunMaoPfWfhpbMr6GooMRR3CCbgKjr");
-
-        byte[] feepow = new byte[]{0};
-        byte[] recipient = Base58.decode("7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob");
-
-        byte[] assetKey = new byte[]{0, 0, 0, 0, 0, 0, 0, 2};//new byte[]{0, 0, 0, 0, 0, 0, 2, 13};
-
-        String originalMessage = "{\"date\":1537448519}";
-        byte[] message = originalMessage.getBytes();
-
-        byte[] amount = new byte[]{0, 0, 0, 34, 26, 18, 92, 0};
-        byte[] titleLength = new byte[]{6};
-        byte[] title = Base58.decode("12345678");
-        byte[] messageLength = new byte[]{0, 0, 0, 19};
-        byte[] isText = new byte[]{0};
-        byte[] port = ByteBuffer.allocate(4).putInt(9066).array();
-
-        byte[] resultSign;
-        resultSign = Bytes.concat(transactionType, timestamp);
-        resultSign = Bytes.concat(resultSign, reference);
-        resultSign = Bytes.concat(resultSign, publicKey);
-        resultSign = Bytes.concat(resultSign, feepow);
-        resultSign = Bytes.concat(resultSign, recipient);
-        resultSign = Bytes.concat(resultSign, assetKey);
-        resultSign = Bytes.concat(resultSign, amount);
-        resultSign = Bytes.concat(resultSign, titleLength);
-        resultSign = Bytes.concat(resultSign, title);
-        resultSign = Bytes.concat(resultSign, messageLength);
-        resultSign = Bytes.concat(resultSign, message);
-        resultSign = Bytes.concat(resultSign, new byte[]{0}); //  0 - is not encrypt
-        resultSign = Bytes.concat(resultSign, isText);
-        resultSign = Bytes.concat(resultSign, port);
-
-        Pair pair = new Pair<>();
-        pair.setA(privateKey);
-        pair.setB(publicKey);
-        System.out.println("bytecode to sign:" + Base58.encode(resultSign));
-        byte[] sign = Crypto.getInstance().sign(pair, resultSign);
-        System.out.println("Sign1: " + Base58.encode(sign));
-
-        byte[] resultToSend;
-        resultToSend = Bytes.concat(transactionType, timestamp);
-        resultToSend = Bytes.concat(resultToSend, reference);
-        resultToSend = Bytes.concat(resultToSend, publicKey);
-        resultToSend = Bytes.concat(resultToSend, feepow);
-        resultToSend = Bytes.concat(resultToSend, sign);
-        resultToSend = Bytes.concat(resultToSend, recipient);
-        resultToSend = Bytes.concat(resultToSend, assetKey);
-        resultToSend = Bytes.concat(resultToSend, amount);
-        resultToSend = Bytes.concat(resultToSend, titleLength);
-        resultToSend = Bytes.concat(resultToSend, title);
-        resultToSend = Bytes.concat(resultToSend, messageLength);
-        resultToSend = Bytes.concat(resultToSend, message);
-        resultToSend = Bytes.concat(resultToSend, new byte[]{0}); //  0 - is not encrypt
-        resultToSend = Bytes.concat(resultToSend, isText);
-
-        System.out.println("Byte code to send:" + Base58.encode(resultToSend));
-        byte[] sign2 = Crypto.getInstance().sign(pair, Bytes.concat(resultToSend));
-
-    }
-
-    public byte[] longToBytes(long x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(x);
-        return buffer.array();
     }
 }
