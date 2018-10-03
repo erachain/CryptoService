@@ -513,6 +513,7 @@ public class ApiCrypto extends SetSettingFile {
         JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
 
         String recipient = jsonParse.get("recipient").toString();
+        String creator = jsonParse.get("creator").toString();
         String title = jsonParse.get("title").toString();
         String orderNumber = jsonParse.get("orderNumber").toString();
         String orderUser = jsonParse.get("orderUser").toString();
@@ -523,8 +524,9 @@ public class ApiCrypto extends SetSettingFile {
         double amount = Double.valueOf(String.valueOf(jsonParse.get("amount")));
         long timestamp = ntp.NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
-        String publicKey = jsonParse.get("publicKey").toString();
-        String privateKey = jsonParse.get("privateKey").toString();
+        String publicKeyCreator = jsonParse.get("publicKeyCreator").toString();
+        String privateKeyCreator = jsonParse.get("privateKeyCreator").toString();
+        String publicKeyRecipient= jsonParse.get("publicKeyRecipient").toString();
         long key = Long.parseLong(jsonParse.get("keyAsset").toString());
         JSONObject jsonMessage = new JSONObject();
 
@@ -541,11 +543,11 @@ public class ApiCrypto extends SetSettingFile {
         BigDecimal bigAmount = new BigDecimal(amount, MathContext.DECIMAL64);
         System.out.println("BigDecimal: " + bigAmount);
 
-        SendTX tx = new SendTX(publicKey,privateKey, recipient, title, jsonMessage.toJSONString(),
+        SendTX tx = new SendTX(publicKeyCreator,privateKeyCreator, recipient,publicKeyRecipient,  title, jsonMessage.toJSONString(),
                 bigAmount,
                 timestamp, key, (byte) 0, encrypt);
 
-        tx.sign(new Pair<>(Base58.decode(privateKey), Base58.decode(publicKey)));
+        tx.sign(new Pair<>(Base58.decode(privateKeyCreator), Base58.decode(publicKeyCreator)));
         String byteCode = Base58.encode(tx.toBytes(true));
 
         JSONObject jsonObject = new JSONObject();

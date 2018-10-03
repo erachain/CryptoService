@@ -255,6 +255,7 @@ public class ApiCryptoTest extends SetSettingFile {
         }
     }
 
+    @Ignore
     @Test
     public void Sometest2() {
         // --- SET TRX HEADER VALUES

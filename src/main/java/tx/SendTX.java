@@ -41,14 +41,16 @@ public class SendTX {
     private long key;
     private byte feePow;
     private int port;
-    private byte[] privateKey;
+    private byte[] privateKeyCreator;
+    private byte[] publicKeyRecipient;
+
 
 
     SendTX(byte[] data) {
         this.parseTX(data);
     }
 
-    public SendTX(String creator, String privateKeyString, String recipient, String head, String data, BigDecimal amount, long timestamp,
+    public SendTX(String creator, String privateKeyString, String recipient, String publicKeyRecipient, String head, String data, BigDecimal amount, long timestamp,
                   long key, byte feePow, byte encrypt) {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
@@ -64,12 +66,14 @@ public class SendTX {
             type[3] = (byte) -127;
         }
         this.port = 9066;
-        this.setTX(encrypt, (byte) 1, creator, privateKeyString, recipient, type, head, data, amount, timestamp, key, feePow);
+        this.setTX(encrypt, (byte) 1, creator, privateKeyString, recipient, publicKeyRecipient, type, head, data, amount, timestamp, key, feePow);
     }
 
-    private void setTX(byte encrypted, byte isText, String creator, String privateKeyString, String recipient, byte[] type, String head,
+    private void setTX(byte encrypted, byte isText, String creator, String privateKeyString, String recipient, String publicKeyRecipient, byte[] type, String head,
                        String data, BigDecimal amount, long timestamp, long key, byte feePow) {
-        this.privateKey = Base58.decode(privateKeyString);
+
+        this.publicKeyRecipient = Base58.decode(publicKeyRecipient);
+        this.privateKeyCreator = Base58.decode(privateKeyString);
         this.type = type;
         this.timestamp = timestamp;
         this.reference = (long) 0;
@@ -240,11 +244,11 @@ public class SendTX {
 
             byte[] dataBytes = this.data.getBytes(Charset.forName("UTF-8"));
 
-            byte[] dataByte = new byte[0];
+            byte[] dataByte;
 
-            if (Arrays.equals(this.encrypted,new byte[]{1})) {
-                dataByte = new AEScrypto().dataEncrypt(dataBytes, privateKey, creator);
-            } else
+            if (Arrays.equals(this.encrypted, new byte[]{1}))
+                dataByte = new AEScrypto().dataEncrypt(dataBytes, privateKeyCreator, publicKeyRecipient);
+            else
                 dataByte = dataBytes;
 
 
