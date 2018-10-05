@@ -260,7 +260,7 @@ public class ApiCryptoTest extends SetSettingFile {
         String creator = "7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx";
         String privateKeyCreator = "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY";
         String publicKeyCreator = "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb";
-        // TO:
+        // TO: seed: "FwLWGTTDEjTmJPQqrWwAWoi8dT5zwrmZiRkLUoQVkzRy"
         String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
         String publicKeyRecipient = "2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7";
 
