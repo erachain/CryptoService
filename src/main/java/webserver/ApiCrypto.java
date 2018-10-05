@@ -213,7 +213,7 @@ public class ApiCrypto extends SetSettingFile {
 
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] signature = Base58.decode(jsonObject.get("signature").toString());
-        byte[] message = Base58.decode("message");
+        byte[] message = Base58.decode(jsonObject.get("signature").toString());
 
         boolean statusVerify = Crypto.getInstance().verify(publicKey, signature, message);
 
@@ -280,14 +280,12 @@ public class ApiCrypto extends SetSettingFile {
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      * If status true all telegram will sending. Status false suspending thread sending telegram.
      *
-     * @param count count telegram for send
      * @param ip address where the message will be sent with port
      * @param sleep delay between sending telegrams
      * @param status status send telegram
      *
      * <h2>Example request</h2>
-     * http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1:9068&sleep=10status=true
-     *
+     * http://127.0.0.1:8181/crypto/generateTelegram?&ip=127.0.0.1:9068&sleep=10&status=true
      * <h2>Example response</h2>
      * {"status sending telegrams", "true"}
      *
@@ -295,8 +293,7 @@ public class ApiCrypto extends SetSettingFile {
      */
     @GET
     @Path("generateTelegram")
-    public Response generateTelegram(@QueryParam("count") Integer count,
-                                     @QueryParam("ip") String ip,
+    public Response generateTelegram(@QueryParam("ip") String ip,
                                      @QueryParam("sleep") Integer sleep,
                                      @QueryParam("status") Boolean status) {
         //  final StatusSending statusSending = new StatusSending();
