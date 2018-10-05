@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
 import java.util.Arrays;
 
 
@@ -22,6 +23,7 @@ public class SendTX {
 
     private static final int KEY_LENGTH = 8;
     private static final int AMOUNT_LENGTH = 8;
+    private static final int REFERENCE_LENGTH = 8;
     private static final int AMOUNT_DEFAULT_SCALE = 8;
     private static final int TIMESTAMP_LENGTH = 8;
     private static final int IS_TEXT_LENGTH = 1;
@@ -29,7 +31,9 @@ public class SendTX {
     private static final int ENCRYPTED_LENGTH = 1;
     private static final int TYPE_LENGTH = 4;
     private static final int HASH_LENGTH = 32;
+    private static final int SIGNATURE_LENGTH = 64;
     private static final int SCALE_MASK = 31;
+    private static final int SCALE_MASK_HALF = (SCALE_MASK + 1) >> 1;
     private byte[] encrypted;
     private byte[] isText;
     private byte[] creator;
@@ -47,9 +51,9 @@ public class SendTX {
     private byte[] privateKeyCreator;
     private byte[] publicKeyRecipient;
 
-
-
-    SendTX(byte[] data) {
+    public SendTX() {
+    }
+    public SendTX(byte[] data) {
         this.parseTX(data);
     }
 
@@ -104,7 +108,7 @@ public class SendTX {
         position += TIMESTAMP_LENGTH;
 
         // READ REFERENCE
-        byte[] referenceBytes = Arrays.copyOfRange(data, position, position + TIMESTAMP_LENGTH);
+        byte[] referenceBytes = Arrays.copyOfRange(data, position, position + REFERENCE_LENGTH);
         referenceBytes = Bytes.ensureCapacity(referenceBytes, TIMESTAMP_LENGTH, 0);
         this.reference = Longs.fromByteArray(referenceBytes);
         position += TIMESTAMP_LENGTH;
@@ -119,29 +123,47 @@ public class SendTX {
         position += 1;
 
         // READ SIGNATURE
-        this.signature = Arrays.copyOfRange(data, position, position + HASH_LENGTH);
-        position += HASH_LENGTH;
+        this.signature = Arrays.copyOfRange(data, position, position + SIGNATURE_LENGTH);
+        position += SIGNATURE_LENGTH;
 
         // READ RECIPIENT
         this.recipient = Arrays.copyOfRange(data, position, position + 25);
         position += 25;
 
+        long key = 0;
+        BigDecimal amount = null;
         if (this.type[2] >= 0) {
             // IF here is AMOUNT
 
             // READ KEY
             byte[] keyBytes = Arrays.copyOfRange(data, position, position + KEY_LENGTH);
-            this.key = Longs.fromByteArray(keyBytes);
+            key = Longs.fromByteArray(keyBytes);
             position += KEY_LENGTH;
 
             // READ AMOUNT
             byte[] amountBytes = Arrays.copyOfRange(data, position, position + AMOUNT_LENGTH);
-            this.amount = new BigDecimal(new BigInteger(amountBytes), AMOUNT_DEFAULT_SCALE);
+            amount = new BigDecimal(new BigInteger(amountBytes), AMOUNT_DEFAULT_SCALE);
             position += AMOUNT_LENGTH;
+
+
+            // CHECK ACCURACY of AMOUNT
+            if (this.type[3] != -1) {
+                // not use old FLAG from vers 2
+                int accuracy = this.type[3] & SCALE_MASK;
+                if (accuracy > 0) {
+                    if (accuracy >= SCALE_MASK_HALF) {
+                        accuracy -= SCALE_MASK + 1;
+                    }
+
+                    // RESCALE AMOUNT
+                    amount = amount.scaleByPowerOfTen(-accuracy);
+                }
+            }
+
         }
 
         // HEAD LEN
-        byte headLen = data[position];
+        int headLen = Byte.toUnsignedInt(data[position]);
         position++;
 
         // HEAD
@@ -159,7 +181,10 @@ public class SendTX {
 
             // READ DATA
             byte[] dataBytes = Arrays.copyOfRange(data, position, position + dataSize);
-            this.data = new String(dataBytes, StandardCharsets.UTF_8);
+            if (Arrays.equals(this.encrypted, new byte[]{0}))
+                this.data = new String(dataBytes, StandardCharsets.UTF_8);
+            else
+                this.data = Base58.encode(dataBytes);
             position += dataSize;
 
             // READ ENCRYPTED FLAG
@@ -167,7 +192,7 @@ public class SendTX {
             position += ENCRYPTED_LENGTH;
 
             this.isText = Arrays.copyOfRange(data, position, position + IS_TEXT_LENGTH);
-            //position += IS_TEXT_LENGTH;
+            //   position += IS_TEXT_LENGTH;
         }
     }
 

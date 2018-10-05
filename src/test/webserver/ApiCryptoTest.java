@@ -5,6 +5,7 @@ import com.google.common.primitives.Ints;
 import crypto.Base58;
 import crypto.Crypto;
 import crypto.Ed25519;
+import org.bouncycastle.jcajce.provider.symmetric.ARC4;
 import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,11 +13,17 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import sun.reflect.Reflection;
 import tx.SendTX;
 import utils.Pair;
+import org.mockito.Mockito.*;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -34,6 +41,55 @@ public class ApiCryptoTest extends SetSettingFile {
     private static String Account2_publicKey;
     private String MESSAGE_ENCRYPT;
     private String SIGN;
+
+    /*
+     * Variable for testing generate byte code
+     * */
+    // creator and recipient
+    String seed_creator=  "ASiXB5ddkaFZ4rKNWh68bb5Cmpu1oXj6fEPJqdQ8xJX7";
+
+    String creator = "7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx";
+    String privateKeyCreator = "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY";
+    String publicKeyCreator = "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb";
+    String PublicKeyCreatorTest;
+
+
+    // TO:
+    String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
+    String recipientTest;
+
+    String publicKeyRecipient = "2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7";
+    String publicKeyRecipientTest;
+
+    String title = "9029700190";
+    String titleTest;
+
+    byte encrypt = 0;
+
+    // SET MESSAGE VALUES
+    long orderDate = System.currentTimeMillis();
+    long orderDateTest;
+
+    String orderNumber = "ORDER #13";
+    String orderNumberTest;
+    String orderUser = title;
+    String orderUserTest;
+    double orderAmount = 1.30;
+    double orderAmountTest;
+    long orderAssetKey = 643L;
+    long orderAssetKeyTest;
+    String orderTitle = "COINS STORE INVOICE";
+    String orderTitleTest;
+    String orderDetails = "Набор монет из драгоценных металлов";
+    String orderDetailsTest;
+    String orderDescription = "Оплата интернет заказа. НДС не облагается.";
+    String orderDescriptionTest;
+    Integer expire = 35;
+    Integer expireTest;
+
+    String byteCode;
+
+
 
     /**
      * Before init test generate two seed and key Pair for each seed
@@ -128,9 +184,9 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void sign() throws Exception {
-        Object result = new ApiCrypto().Sign("{\"publicKey\":\"" + Account1_publicKey + "\",\n" +
+        Object result = new ApiCrypto().Sign("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"privateKey\":\"" + Account1_privateKey + "\"," +
-                " \"message\":\"" + MESSAGE + "\"}");
+                " \"message\":\"" + Base58.encode(MESSAGE.getBytes()) + "\"}");
 
         Object sign = ((OutboundJaxrsResponse) result).getEntity();
         JSONParser jsonParser = new JSONParser();
@@ -147,7 +203,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
         Object result = new ApiCrypto().VerifySignature("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"signature\":\"" + SIGN + "\"," +
-                "\"message\":\"" + MESSAGE + "\"}");
+                "\"message\":\"" + Base58.encode(MESSAGE.getBytes()) + "\"}");
 
         Object sign = ((OutboundJaxrsResponse) result).getEntity();
         JSONParser jsonParser = new JSONParser();
@@ -277,10 +333,10 @@ public class ApiCryptoTest extends SetSettingFile {
         String orderUser = title;
         double orderAmount = 1.30;
         long orderAssetKey = 643L;
-        String orderTitle = "COINS STORE INVOICE";
-        String orderDetails = "Набор монет из драгоценных металлов";
-        String orderDescription = "Оплата интернет заказа. НДС не облагается.";
-        Integer expire = 35;
+
+        byte[] publicKeyCreatorByte = Base58.decode(this.publicKeyCreator);
+        byte[] privateKeyCreatorByte = Base58.decode(this.privateKeyCreator);
+        long timestamp = ntp.NTP.getTime();
 
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
@@ -296,12 +352,63 @@ public class ApiCryptoTest extends SetSettingFile {
         String message = jsonObj.toJSONString();
         System.out.println(message);
 
-        SendTX tx = new SendTX(publicKeyCreator, privateKeyCreator, recipient, publicKeyRecipient, title, message,
+        SendTX tx = new SendTX(this.publicKeyCreator, this.privateKeyCreator, this.recipient, this.publicKeyRecipient, title, message,
                 BigDecimal.ZERO,
                 //BigDecimal.valueOf(orderAmount),
                 timestamp, orderAssetKey, (byte)0, encrypt);
 
         tx.sign(new Pair<>(privateKeyCreatorByte, publicKeyCreatorByte));
-        System.out.println("Bytecode to send:\n" + Base58.encode(tx.toBytes(true)));
+        String byteCode = Base58.encode(tx.toBytes(true));
+        Assert.assertNotNull(byteCode);
+
+        this.byteCode = byteCode;
+
+
+        System.out.println("Bytecode to send:\n" + byteCode);
+    }
+
+    @Test
+    public void verifyByteCode() throws Exception {
+        if (byteCode == null)
+            generateByteCode();
+
+        SendTX sendTXParse = new SendTX(Base58.decode(byteCode));
+
+        Field creator = (SendTX.class.getDeclaredField("creator"));
+        creator.setAccessible(true);
+        Assert.assertEquals(Base58.encode((byte[]) creator.get(sendTXParse)), this.publicKeyCreator);
+
+        Field recipient = (SendTX.class.getDeclaredField("recipient"));
+        recipient.setAccessible(true);
+        Assert.assertEquals(Base58.encode((byte[]) recipient.get(sendTXParse)), this.recipient);
+
+        Field reference = (SendTX.class.getDeclaredField("reference"));
+        reference.setAccessible(true);
+        Assert.assertEquals(new Long(reference.get(sendTXParse).toString()), new Long(0));
+
+        Field head = (SendTX.class.getDeclaredField("head"));
+        head.setAccessible(true);
+        Assert.assertEquals(head.get(sendTXParse).toString(), this.title);
+
+
+
+        JSONObject jsonObj = new JSONObject();
+        jsonObj.put("date", orderDate);
+        jsonObj.put("order", orderNumber);
+        jsonObj.put("user", orderUser);
+        jsonObj.put("curr", orderAssetKey);
+        jsonObj.put("sum", orderAmount);
+        jsonObj.put("title", orderTitle);
+        jsonObj.put("details", orderDetails);
+        jsonObj.put("description", orderDescription);
+        jsonObj.put("expire", expire);
+
+        String message = jsonObj.toJSONString();
+
+
+
+
+
+        String d = "";
     }
 }
