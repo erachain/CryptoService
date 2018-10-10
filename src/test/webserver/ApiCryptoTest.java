@@ -13,11 +13,8 @@ import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import sun.reflect.Reflection;
 import tx.SendTX;
 import utils.Pair;
-import org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -334,10 +331,6 @@ public class ApiCryptoTest extends SetSettingFile {
         double orderAmount = 1.30;
         long orderAssetKey = 643L;
 
-        byte[] publicKeyCreatorByte = Base58.decode(this.publicKeyCreator);
-        byte[] privateKeyCreatorByte = Base58.decode(this.privateKeyCreator);
-        long timestamp = ntp.NTP.getTime();
-
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
         jsonObj.put("order", orderNumber);
@@ -370,7 +363,7 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void verifyByteCode() throws Exception {
         if (byteCode == null)
-            generateByteCode();
+            GeneratyByteCode();
 
         SendTX sendTXParse = new SendTX(Base58.decode(byteCode));
 
@@ -404,8 +397,6 @@ public class ApiCryptoTest extends SetSettingFile {
         jsonObj.put("expire", expire);
 
         String message = jsonObj.toJSONString();
-
-
 
 
 
