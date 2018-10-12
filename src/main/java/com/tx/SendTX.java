@@ -53,6 +53,7 @@ public class SendTX {
 
     public SendTX() {
     }
+
     public SendTX(byte[] data) {
         this.parseTX(data);
     }
@@ -283,10 +284,9 @@ public class SendTX {
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
                 dataByte = Base58.decode(jsonObject.get("encrypted").toString());
 
-            } else
+            } else {
                 dataByte = dataBytes;
-
-
+            }
 
             byte[] dataSizeBytes = Ints.toByteArray(dataByte.length);
             data = Bytes.concat(data, dataSizeBytes);

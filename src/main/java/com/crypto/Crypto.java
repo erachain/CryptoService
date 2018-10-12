@@ -1,8 +1,9 @@
 package com.crypto;
 
 import com.google.common.primitives.Bytes;
-import org.apache.log4j.Logger;
-import com.Pair;
+import com.utils.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,11 +18,10 @@ public class Crypto {
 
     public static final byte ADDRESS_VERSION = 15;
     public static final byte AT_ADDRESS_VERSION = 23;
-    static Logger LOGGER = Logger.getLogger(Crypto.class.getName());
+    static Logger LOGGER = LoggerFactory.getLogger(Crypto.class);
     private static Crypto instance;
 
     private Crypto() {
-
     }
 
     public static Crypto getInstance() {
@@ -92,7 +92,6 @@ public class Crypto {
         publicKeyHash = ripEmd160.digest(publicKeyHash);
 
         return this.getAddressFromShort(publicKeyHash);
-
     }
 
     public String getATAddress(byte[] signature) {
@@ -184,7 +183,6 @@ public class Crypto {
                 checkSumTwo[2] = digest[2];
                 checkSumTwo[3] = digest[3];
 
-
                 return Arrays.equals(checkSum, checkSumTwo);
                 //}
             }
@@ -215,5 +213,4 @@ public class Crypto {
             return false;
         }
     }
-
 }

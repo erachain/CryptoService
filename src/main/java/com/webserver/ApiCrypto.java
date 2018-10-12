@@ -1,6 +1,6 @@
 package com.webserver;
 
-import com.Pair;
+import com.utils.Pair;
 import com.StringRandomGen;
 import com.crypto.AEScrypto;
 import com.crypto.Base58;
@@ -27,7 +27,7 @@ import java.util.Random;
 @SuppressWarnings("unchecked")
 public class ApiCrypto {
     private static Thread thread;
-      Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
+    final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json; charset=utf-8")
@@ -108,7 +108,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "encrypt", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity encrypt(@RequestBody JSONObject jsonObject) {
+    public ResponseEntity Encrypt(@RequestBody JSONObject jsonObject) {
 
         String message = jsonObject.get("message").toString();
 
@@ -167,7 +167,7 @@ public class ApiCrypto {
         Pair<byte[], byte[]> pair = new Pair<>();
         pair.setA(Base58.decode(jsonObject.get("privateKey").toString()));
         pair.setB(Base58.decode(jsonObject.get("publicKey").toString()));
-        byte[] sign = Crypto.getInstance().sign(pair, message.getBytes());
+        byte[] sign = Crypto.getInstance().sign(pair, Base58.decode(message));
 
         JSONObject jsonObjectSign = new JSONObject();
         jsonObjectSign.put("signature", Base58.encode(sign));
@@ -190,7 +190,7 @@ public class ApiCrypto {
 
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] signature = Base58.decode(jsonObject.get("signature").toString());
-        byte[] message = jsonObject.get("message").toString().getBytes();
+        byte[] message = Base58.decode(jsonObject.get("message").toString());
 
         boolean statusVerify = Crypto.getInstance().verify(publicKey, signature, message);
 

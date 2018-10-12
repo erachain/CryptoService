@@ -1,6 +1,6 @@
 package com.webserver;
 
-import com.Pair;
+import com.utils.Pair;
 import com.crypto.Base58;
 import com.crypto.Crypto;
 import com.crypto.Ed25519;

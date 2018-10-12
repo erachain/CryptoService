@@ -1,4 +1,4 @@
-package com;
+package com.utils;
 
 public class Pair<T, U> {
 

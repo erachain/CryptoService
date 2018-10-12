@@ -3,20 +3,16 @@ package com.webserver;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 @Configuration
 public class SetSettingFile {
@@ -25,13 +21,13 @@ public class SetSettingFile {
     static ArrayList<String> WHITE_LIST = new ArrayList<>();
     static String SEED_CREATOR;
     static String SEED_RECIPIENT;
+    private final static Logger LOGGER = LoggerFactory.getLogger(SetSettingFile.class);
 
     /**
      * Create setting file if not exist and read file.
      *
      * @throws Exception
      */
-    //   static Logger LOGGER = Logger.getLogger(SetSettingFile.class.getName());
     @Bean
     public String SettingFile() throws Exception {
         File setting = new File("setting.json");
@@ -66,14 +62,14 @@ public class SetSettingFile {
             SERVER_BIND = jsonObject.get("bind").toString();
             SERVER_PORT = Integer.parseInt(jsonObject.get("port").toString());
             SEED_CREATOR = jsonObject.get("seed_creator").toString();
+            LOGGER.info("CREATOR: " + SEED_CREATOR);
             SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
+            LOGGER.info("RECIPIENT: " + SEED_RECIPIENT);
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
 
             for (Object aJsonArray : jsonArray) {
                 WHITE_LIST.add(aJsonArray.toString());
             }
-
-
         } catch (Exception e) {
             throw new Exception(e);
         }
