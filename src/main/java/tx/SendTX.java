@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
 import java.util.Arrays;
 
 
@@ -275,7 +274,7 @@ public class SendTX {
             byte[] dataByte;
 
             if (Arrays.equals(this.encrypted, new byte[]{1})) {
-                Object result = new ApiCrypto().Encrypt("{\"message\":" + this.data + ", " +
+                Object result = new ApiCrypto().encrypt("{\"message\":" + this.data + ", " +
                         "\"publicKey\":\"" + Base58.encode(publicKeyRecipient) + "\"," +
                         "\"privateKey\":\"" + Base58.encode(privateKeyCreator) + "\"}");
                 Object encrypt = ((OutboundJaxrsResponse) result).getEntity();

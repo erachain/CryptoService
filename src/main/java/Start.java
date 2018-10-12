@@ -23,7 +23,6 @@ public class Start {
         } catch (Exception e) {
             LOGGER.error(e.toString());
             System.exit(1);
-
         } finally {
             webServer.stop();
         }

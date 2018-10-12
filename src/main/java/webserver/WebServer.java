@@ -24,7 +24,6 @@ import java.util.Set;
 
 import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
 
-
 public class WebServer extends SetSettingFile {
     private Server server;
     final static private Logger LOGGER = LoggerFactory.getLogger(WebServer.class);

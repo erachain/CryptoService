@@ -5,7 +5,6 @@ import com.google.common.primitives.Ints;
 import crypto.Base58;
 import crypto.Crypto;
 import crypto.Ed25519;
-import org.bouncycastle.jcajce.provider.symmetric.ARC4;
 import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -17,10 +16,8 @@ import tx.SendTX;
 import utils.Pair;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -49,7 +46,6 @@ public class ApiCryptoTest extends SetSettingFile {
     String privateKeyCreator = "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY";
     String publicKeyCreator = "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb";
     String PublicKeyCreatorTest;
-
 
     // TO:
     String recipient = "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob";
@@ -87,7 +83,6 @@ public class ApiCryptoTest extends SetSettingFile {
     String byteCode;
 
 
-
     /**
      * Before init test generate two seed and key Pair for each seed
      */
@@ -102,7 +97,7 @@ public class ApiCryptoTest extends SetSettingFile {
         new Random().nextBytes(seedAccount2);
         SEED_ACCOUNT2 = Base58.encode(seedAccount2);
 
-        Object result = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT1);
+        Object result = new ApiCrypto().generateKeyPair(SEED_ACCOUNT1);
         Object keysObject = ((OutboundJaxrsResponse) result).getEntity();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(keysObject.toString());
@@ -110,7 +105,7 @@ public class ApiCryptoTest extends SetSettingFile {
         Account1_privateKey = jsonObject.get("privateKey").toString();
         Account1_publicKey = jsonObject.get("publicKey").toString();
 
-        Object result2 = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT2);
+        Object result2 = new ApiCrypto().generateKeyPair(SEED_ACCOUNT2);
         Object keysObject2 = ((OutboundJaxrsResponse) result2).getEntity();
         JSONParser jsonParser2 = new JSONParser();
         JSONObject jsonObject2 = (JSONObject) jsonParser2.parse(keysObject2.toString());
@@ -125,7 +120,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void generateSeed() throws Exception {
-        Object result = new ApiCrypto().GenerateSeed();
+        Object result = new ApiCrypto().generateSeed();
         Object seed = ((OutboundJaxrsResponse) result).getEntity();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(seed.toString());
@@ -134,7 +129,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void generateKeyPair() throws ParseException {
-        Object result = new ApiCrypto().GenerateKeyPair(SEED_ACCOUNT1);
+        Object result = new ApiCrypto().generateKeyPair(SEED_ACCOUNT1);
         Object keysObject = ((OutboundJaxrsResponse) result).getEntity();
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(keysObject.toString());
@@ -148,7 +143,7 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void encrypt() throws Exception {
 
-        Object result = new ApiCrypto().Encrypt("{\"message\":\"" + MESSAGE + "\", " +
+        Object result = new ApiCrypto().encrypt("{\"message\":\"" + MESSAGE + "\", " +
                 "\"publicKey\":\"" + Account2_publicKey + "\"," +
                 "\"privateKey\":\"" + Account1_privateKey + "\"}");
         Object encrypt = ((OutboundJaxrsResponse) result).getEntity();
@@ -164,7 +159,7 @@ public class ApiCryptoTest extends SetSettingFile {
         if (MESSAGE_ENCRYPT == null)
             encrypt();
 
-        Object result = new ApiCrypto().Decrypt("{\"message\": \"" + MESSAGE_ENCRYPT +
+        Object result = new ApiCrypto().decrypt("{\"message\": \"" + MESSAGE_ENCRYPT +
                 "\",\"publicKey\":\"" + Account1_publicKey + "\",\n" +
                 "\"privateKey\":\"" + Account2_privateKey + "\"}");
 
@@ -181,7 +176,7 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void sign() throws Exception {
-        Object result = new ApiCrypto().Sign("{\"publicKey\":\"" + Account1_publicKey + "\"," +
+        Object result = new ApiCrypto().sign("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"privateKey\":\"" + Account1_privateKey + "\"," +
                 " \"message\":\"" + Base58.encode(MESSAGE.getBytes()) + "\"}");
 
@@ -198,7 +193,7 @@ public class ApiCryptoTest extends SetSettingFile {
         if (SIGN == null)
             sign();
 
-        Object result = new ApiCrypto().VerifySignature("{\"publicKey\":\"" + Account1_publicKey + "\"," +
+        Object result = new ApiCrypto().verifySignature("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"signature\":\"" + SIGN + "\"," +
                 "\"message\":\"" + Base58.encode(MESSAGE.getBytes()) + "\"}");
 
@@ -308,7 +303,7 @@ public class ApiCryptoTest extends SetSettingFile {
      * @throws Exception
      */
     @Test
-    public void GeneratyByteCode() throws Exception {
+    public void generatyByteCode() throws Exception {
         // FROM:
         String creator = "7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx";
         String privateKeyCreator = "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY";
@@ -363,7 +358,7 @@ public class ApiCryptoTest extends SetSettingFile {
     @Test
     public void verifyByteCode() throws Exception {
         if (byteCode == null)
-            GeneratyByteCode();
+            generatyByteCode();
 
         SendTX sendTXParse = new SendTX(Base58.decode(byteCode));
 
@@ -383,8 +378,6 @@ public class ApiCryptoTest extends SetSettingFile {
         head.setAccessible(true);
         Assert.assertEquals(head.get(sendTXParse).toString(), this.title);
 
-
-
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("date", orderDate);
         jsonObj.put("order", orderNumber);
@@ -397,8 +390,6 @@ public class ApiCryptoTest extends SetSettingFile {
         jsonObj.put("expire", expire);
 
         String message = jsonObj.toJSONString();
-
-
 
         String d = "";
     }

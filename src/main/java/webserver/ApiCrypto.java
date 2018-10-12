@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-
 @Path("crypto")
 public class ApiCrypto extends SetSettingFile {
     private static Thread thread;
@@ -33,11 +32,11 @@ public class ApiCrypto extends SetSettingFile {
     public Response Default() {
         JSONObject jsonObject = new JSONObject();
 
-        jsonObject.put("crypto/generateSeed", "GenerateSeed, GET");
+        jsonObject.put("crypto/generateSeed", "generateSeed, GET");
         jsonObject.put("crypto/generateSeed/{seed}", "Generate key pair, GET");
-        jsonObject.put("crypto/encrypt", "Encrypt message, POST. Body request: {\"message\": \"test message for encrypt and decrypt\",\"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
-        jsonObject.put("crypto/decrypt", "Decrypt message, POST. Body request: {\"message\": \"{encrypt message Base58}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
-        jsonObject.put("crypto/sign", "Sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
+        jsonObject.put("crypto/encrypt", "encrypt message, POST. Body request: {\"message\": \"test message for encrypt and decrypt\",\"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
+        jsonObject.put("crypto/decrypt", "decrypt message, POST. Body request: {\"message\": \"{encrypt message Base58}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
+        jsonObject.put("crypto/sign", "sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
         jsonObject.put("crypto/verifySignature", "Verify sign, POST. Body request: {\"message\": \"{message}\", \"publicKey\":\"{publicKey}\",\"signature\":\"{sign}\"}");
 
 
@@ -63,7 +62,7 @@ public class ApiCrypto extends SetSettingFile {
      */
     @GET
     @Path("generateSeed")
-    public Response GenerateSeed() {
+    public Response generateSeed() {
         LOGGER.info("ss");
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
@@ -90,12 +89,12 @@ public class ApiCrypto extends SetSettingFile {
      * {"publicKey":"BHJAVuNsvcjWy6jaaF85HHYzr9Up9rA4BW3xseUBs9Un",
      * "privateKey":"4XeFFL279quugYpvkqSPHwsK68jumG7C9CWz7QzSWJapjSB1FGiSDSawg65YZorRt2GbAP25gGv8ooduMxWpp7HD"}
      *
-     * @param seed is a {@link #GenerateSeed()} master key for generating key pair
+     * @param seed is a {@link #generateSeed()} master key for generating key pair
      * @return key pair. Public key - byte[32], Private key - byte[64]
      */
     @GET
     @Path("generateKeyPair/{seed}")
-    public Response GenerateKeyPair(@PathParam("seed") String seed) {
+    public Response generateKeyPair(@PathParam("seed") String seed) {
 
         Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(Base58.decode(seed));
 
@@ -110,8 +109,8 @@ public class ApiCrypto extends SetSettingFile {
     }
 
     /**
-     * Encrypt message by using my private key and there public key.
-     * {@link #GenerateKeyPair(String)}.
+     * encrypt message by using my private key and there public key.
+     * {@link #generateKeyPair(String)}.
      *
      * @param encrypt is JSON contains keys and message for encrypt
      * @return JSON string contains encode Base58 message
@@ -119,7 +118,7 @@ public class ApiCrypto extends SetSettingFile {
      */
     @POST
     @Path("encrypt")
-    public Response Encrypt(String encrypt) throws Exception {
+    public Response encrypt(String encrypt) throws Exception {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt);
@@ -139,7 +138,7 @@ public class ApiCrypto extends SetSettingFile {
     }
 
     /**
-     * Decrypt message
+     * decrypt message
      *
      * @param decrypt Json row contain keys and message for decrypt
      * @return Json string. if the decryption was successful, it will return the message in coding UTF-8.
@@ -148,7 +147,7 @@ public class ApiCrypto extends SetSettingFile {
      */
     @POST
     @Path("decrypt")
-    public Response Decrypt(String decrypt) throws Exception {
+    public Response decrypt(String decrypt) throws Exception {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(decrypt);
@@ -172,13 +171,13 @@ public class ApiCrypto extends SetSettingFile {
     /**
      * Get signature
      *
-     * @param toSign JSON string contains {@link #GenerateKeyPair(String)} keyPair for sign and message
+     * @param toSign JSON string contains {@link #generateKeyPair(String)} keyPair for sign and message
      * @return
      * @throws Exception
      */
     @POST
     @Path("sign")
-    public Response Sign(String toSign) throws Exception {
+    public Response sign(String toSign) throws Exception {
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(toSign);
@@ -207,7 +206,7 @@ public class ApiCrypto extends SetSettingFile {
      */
     @POST
     @Path("verifySignature")
-    public Response VerifySignature(String toVerifySign) throws Exception {
+    public Response verifySignature(String toVerifySign) throws Exception {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(toVerifySign);
 
