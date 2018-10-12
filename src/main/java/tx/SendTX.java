@@ -17,9 +17,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-
 public class SendTX {
-
     private static final int KEY_LENGTH = 8;
     private static final int AMOUNT_LENGTH = 8;
     private static final int REFERENCE_LENGTH = 8;
@@ -52,6 +50,7 @@ public class SendTX {
 
     public SendTX() {
     }
+
     public SendTX(byte[] data) {
         this.parseTX(data);
     }
@@ -61,16 +60,19 @@ public class SendTX {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
         type[1] = (byte) 0;
+
         if (amount.compareTo(new BigDecimal(0)) > 0) {
             type[2] = (byte) 0;
         } else {
             type[2] = (byte) -127;
         }
+
         if (head != null || data != null) {
             type[3] = (byte) 0;
         } else {
             type[3] = (byte) -127;
         }
+
         this.port = 9066;
         this.setTX(encrypt, (byte) 1, creator, privateKeyString, recipient, publicKeyRecipient, type, head, data, amount, timestamp, key, feePow);
     }
@@ -153,12 +155,10 @@ public class SendTX {
                     if (accuracy >= SCALE_MASK_HALF) {
                         accuracy -= SCALE_MASK + 1;
                     }
-
                     // RESCALE AMOUNT
                     amount = amount.scaleByPowerOfTen(-accuracy);
                 }
             }
-
         }
 
         // HEAD LEN
@@ -180,10 +180,11 @@ public class SendTX {
 
             // READ DATA
             byte[] dataBytes = Arrays.copyOfRange(data, position, position + dataSize);
-            if (Arrays.equals(this.encrypted, new byte[]{0}))
+            if (Arrays.equals(this.encrypted, new byte[]{0})) {
                 this.data = new String(dataBytes, StandardCharsets.UTF_8);
-            else
+            } else {
                 this.data = Base58.encode(dataBytes);
+            }
             position += dataSize;
 
             // READ ENCRYPTED FLAG
@@ -221,8 +222,9 @@ public class SendTX {
         data = Bytes.concat(data, feePowBytes);
 
         // SIGNATURE
-        if (withSign)
+        if (withSign) {
             data = Bytes.concat(data, this.signature);
+        }
 
         // WRITE RECIPIENT
         data = Bytes.concat(data, this.recipient);
@@ -240,9 +242,9 @@ public class SendTX {
             if (different_scale != 0) {
                 // RESCALE AMOUNT
                 amountBase = this.amount.scaleByPowerOfTen(different_scale);
-                if (different_scale < 0)
+                if (different_scale < 0) {
                     different_scale += SCALE_MASK + 1;
-
+                }
                 // WRITE ACCURACY of AMOUNT
                 data[3] = (byte) (data[3] | different_scale);
             } else {
@@ -282,10 +284,9 @@ public class SendTX {
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
                 dataByte = Base58.decode(jsonObject.get("encrypted").toString());
 
-            } else
+            } else {
                 dataByte = dataBytes;
-
-
+            }
 
             byte[] dataSizeBytes = Ints.toByteArray(dataByte.length);
             data = Bytes.concat(data, dataSizeBytes);
@@ -301,9 +302,9 @@ public class SendTX {
         }
 
         // PORT
-        if (!withSign)
+        if (!withSign) {
             data = Bytes.concat(data, Ints.toByteArray(this.port));
-
+        }
         return data;
     }
 

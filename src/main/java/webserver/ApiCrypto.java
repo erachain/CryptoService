@@ -28,6 +28,7 @@ public class ApiCrypto extends SetSettingFile {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
+
     @GET
     public Response Default() {
         JSONObject jsonObject = new JSONObject();
@@ -39,14 +40,11 @@ public class ApiCrypto extends SetSettingFile {
         jsonObject.put("crypto/sign", "sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
         jsonObject.put("crypto/verifySignature", "Verify sign, POST. Body request: {\"message\": \"{message}\", \"publicKey\":\"{publicKey}\",\"signature\":\"{sign}\"}");
 
-
         return Response.status(200)
                 .header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
                 .entity(jsonObject.toJSONString())
                 .build();
-
-
     }
 
     /**
@@ -63,7 +61,6 @@ public class ApiCrypto extends SetSettingFile {
     @GET
     @Path("generateSeed")
     public Response generateSeed() {
-        LOGGER.info("ss");
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
         String seedBase58 = Base58.encode(seed);
@@ -95,10 +92,9 @@ public class ApiCrypto extends SetSettingFile {
     @GET
     @Path("generateKeyPair/{seed}")
     public Response generateKeyPair(@PathParam("seed") String seed) {
-
         Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(Base58.decode(seed));
-
         JSONObject jsonObject = new JSONObject();
+
         jsonObject.put("publicKey", Base58.encode(keyPair.getB()));
         jsonObject.put("privateKey", Base58.encode(keyPair.getA()));
 
@@ -119,7 +115,6 @@ public class ApiCrypto extends SetSettingFile {
     @POST
     @Path("encrypt")
     public Response encrypt(String encrypt) throws Exception {
-
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt);
 
@@ -148,19 +143,21 @@ public class ApiCrypto extends SetSettingFile {
     @POST
     @Path("decrypt")
     public Response decrypt(String decrypt) throws Exception {
-
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(decrypt);
+
         byte[] message = Base58.decode(jsonObject.get("message").toString());
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] privateKey = Base58.decode(jsonObject.get("privateKey").toString());
+
         JSONObject jsonObjectResult = new JSONObject();
         byte[] result = AEScrypto.dataDecrypt(message, privateKey, publicKey);
 
-        if (result == null)
+        if (result == null) {
             jsonObjectResult.put("Error", "Cannot decrypt. Invalid keys.");
-        else
+        } else {
             jsonObjectResult.put("decrypted", new String(result, StandardCharsets.UTF_8));
+        }
 
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
@@ -178,9 +175,9 @@ public class ApiCrypto extends SetSettingFile {
     @POST
     @Path("sign")
     public Response sign(String toSign) throws Exception {
-
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(toSign);
+
         String message = jsonObject.get("message").toString();
 
         Pair<byte[], byte[]> pair = new Pair<>();
@@ -250,7 +247,6 @@ public class ApiCrypto extends SetSettingFile {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(value);
 
-
         Integer nonce = Integer.valueOf(jsonObject.get("nonce").toString());
         String seed = jsonObject.get("seed").toString();
         JSONObject jsonObjectResult = new JSONObject();
@@ -297,7 +293,6 @@ public class ApiCrypto extends SetSettingFile {
                                      @QueryParam("status") Boolean status) {
         //  final StatusSending statusSending = new StatusSending();
 
-
         this.status = status;
         JSONObject jsonObject = new JSONObject();
         ArrayList arrayListRecipient = new ArrayList();
@@ -324,7 +319,6 @@ public class ApiCrypto extends SetSettingFile {
         JSONObject message = new JSONObject();
 
         Random random = new Random();
-
 
         thread = new Thread(() -> {
             do {
@@ -429,7 +423,6 @@ public class ApiCrypto extends SetSettingFile {
 
         byte[] transactionType = new byte[]{31, 0, 0, 0};
         Long timestamp = Long.parseLong(new Timestamp(System.currentTimeMillis()).toString());
-
 
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
