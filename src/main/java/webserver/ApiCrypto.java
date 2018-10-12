@@ -254,7 +254,7 @@ public class ApiCrypto extends SetSettingFile {
 
         Integer nonce = Integer.valueOf(jsonObject.get("nonce").toString());
         String seed = jsonObject.get("seed").toString();
-        JSONObject jsonObjecttResult = new JSONObject();
+        JSONObject jsonObjectResult = new JSONObject();
 
         byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
         byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seed), nonceBytes);
@@ -264,15 +264,15 @@ public class ApiCrypto extends SetSettingFile {
 
         String address = Crypto.getInstance().getAddress(keyPair.getB());
 
-        jsonObjecttResult.put("numAccount", nonce);
-        jsonObjecttResult.put("accountSeed", Base58.encode(accountSeed));
-        jsonObjecttResult.put("publicKey", Base58.encode(keyPair.getB()));
-        jsonObjecttResult.put("privateKey", Base58.encode(keyPair.getA()));
-        jsonObjecttResult.put("account", address);
+        jsonObjectResult.put("numAccount", nonce);
+        jsonObjectResult.put("accountSeed", Base58.encode(accountSeed));
+        jsonObjectResult.put("publicKey", Base58.encode(keyPair.getB()));
+        jsonObjectResult.put("privateKey", Base58.encode(keyPair.getA()));
+        jsonObjectResult.put("account", address);
 
         return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
                 .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObjecttResult.toJSONString())
+                .entity(jsonObjectResult.toJSONString())
                 .build();
     }
 

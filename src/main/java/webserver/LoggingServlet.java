@@ -11,8 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(urlPatterns = "/")
-public class LoggingSevlet extends HttpServlet {
-    static Logger LOGGER = LoggerFactory.getLogger(LoggingSevlet.class);
+public class LoggingServlet extends HttpServlet {
+    static Logger LOGGER = LoggerFactory.getLogger(LoggingServlet.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

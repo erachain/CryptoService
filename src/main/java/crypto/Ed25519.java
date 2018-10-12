@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Ed25519 {
-    static Logger LOGGER = LoggerFactory.getLogger(Crypto.class);
+    static Logger LOGGER = LoggerFactory.getLogger(Ed25519.class);
 
     public static byte[] getSharedSecret(byte[] public_key, byte[] private_key) {
         byte[] shared_secret = new byte[32];
