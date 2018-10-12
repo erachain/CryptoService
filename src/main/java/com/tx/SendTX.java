@@ -5,17 +5,16 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.crypto.Base58;
 import com.crypto.Crypto;
-import org.glassfish.jersey.message.internal.OutboundJaxrsResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.utils.Pair;
 import com.webserver.ApiCrypto;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
 import java.util.Arrays;
 
 
@@ -276,10 +275,10 @@ public class SendTX {
             byte[] dataByte;
 
             if (Arrays.equals(this.encrypted, new byte[]{1})) {
-                Object result = new ApiCrypto().Encrypt("{\"message\":" + this.data + ", " +
+                Object result = new ApiCrypto().encrypt((JSONObject) new JSONParser().parse("{\"message\":" + this.data + ", " +
                         "\"publicKey\":\"" + Base58.encode(publicKeyRecipient) + "\"," +
-                        "\"privateKey\":\"" + Base58.encode(privateKeyCreator) + "\"}");
-                Object encrypt = ((OutboundJaxrsResponse) result).getEntity();
+                        "\"privateKey\":\"" + Base58.encode(privateKeyCreator) + "\"}"));
+                Object encrypt = ((ResponseEntity) result).getBody();
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(encrypt.toString());
                 dataByte = Base58.decode(jsonObject.get("encrypted").toString());

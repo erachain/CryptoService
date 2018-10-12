@@ -1,7 +1,7 @@
 package com.webserver;
 
 import com.utils.Pair;
-import com.StringRandomGen;
+import com.utils.StringRandomGen;
 import com.crypto.AEScrypto;
 import com.crypto.Base58;
 import com.crypto.Crypto;
@@ -36,9 +36,9 @@ public class ApiCrypto {
     public ResponseEntity Default() {
         JSONObject jsonObject = new JSONObject();
 
-        jsonObject.put("crypto/generateSeed", "GenerateSeed, GET");
+        jsonObject.put("crypto/generateSeed", "generateSeed, GET");
         jsonObject.put("crypto/generateSeed/{seed}", "Generate key pair, GET");
-        jsonObject.put("crypto/encrypt", "Encrypt message, POST. Body request: {\"message\": \"test message for encrypt and decrypt\",\"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
+        jsonObject.put("crypto/encrypt", "encrypt message, POST. Body request: {\"message\": \"test message for encrypt and decrypt\",\"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
         jsonObject.put("crypto/decrypt", "Decrypt message, POST. Body request: {\"message\": \"{encrypt message Base58}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privateKey}\"}");
         jsonObject.put("crypto/sign", "Sign, POST. Body request: {\"message\": \"{sign this}\", \"publicKey\":\"{publicKey}\",\"privateKey\":\"{privaeKey}\"}");
         jsonObject.put("crypto/verifySignature", "Verify sign, POST. Body request: {\"message\": \"{message}\", \"publicKey\":\"{publicKey}\",\"signature\":\"{sign}\"}");
@@ -59,7 +59,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generateSeed", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity GenerateSeed() {
+    public ResponseEntity generateSeed() {
         byte[] seed = new byte[32];
         new Random().nextBytes(seed);
         String seedBase58 = Base58.encode(seed);
@@ -82,7 +82,7 @@ public class ApiCrypto {
      * {"publicKey":"BHJAVuNsvcjWy6jaaF85HHYzr9Up9rA4BW3xseUBs9Un",
      * "privateKey":"4XeFFL279quugYpvkqSPHwsK68jumG7C9CWz7QzSWJapjSB1FGiSDSawg65YZorRt2GbAP25gGv8ooduMxWpp7HD"}
      *
-     * @param seed is a {@link #GenerateSeed()} master key for generating key pair
+     * @param seed is a {@link #generateSeed()} master key for generating key pair
      * @return key pair. Public key - byte[32], Private key - byte[64]
      */
     @RequestMapping(value = "generateKeyPair/{seed}", method = RequestMethod.GET,
@@ -99,7 +99,7 @@ public class ApiCrypto {
     }
 
     /**
-     * Encrypt message by using my private key and there public key.
+     * encrypt message by using my private key and there public key.
      * {@link #generateKeyPair(String)}.
      *
      * @param jsonObject is JSON contains keys and message for encrypt
@@ -108,7 +108,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "encrypt", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity Encrypt(@RequestBody JSONObject jsonObject) {
+    public ResponseEntity encrypt(@RequestBody JSONObject jsonObject) {
 
         String message = jsonObject.get("message").toString();
 
