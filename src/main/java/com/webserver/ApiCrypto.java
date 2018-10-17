@@ -1,5 +1,7 @@
 package com.webserver;
 
+import com.ntp.NTP;
+import com.tx.SendTX;
 import com.utils.Pair;
 import com.utils.StringRandomGen;
 import com.crypto.AEScrypto;
@@ -17,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -162,9 +166,8 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "sign", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity sign(@RequestBody JSONObject toSign) throws Exception {
+    public ResponseEntity sign(@RequestBody JSONObject toSign) {
 
-        // JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = toSign;
         String message = jsonObject.get("message").toString();
 
@@ -188,7 +191,7 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "verifySignature", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity verifySignature(@RequestBody JSONObject toVerifySign) throws Exception {
+    public ResponseEntity verifySignature(@RequestBody JSONObject toVerifySign) {
 
         JSONObject jsonObject = toVerifySign;
 
@@ -254,7 +257,6 @@ public class ApiCrypto {
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      * If status true all telegram will sending. Status false suspending thread sending telegram.
      *
-     * @param count  count telegram for send
      * @param ip     address where the message will be sent with port
      * @param sleep  delay between sending telegrams
      * @param status status send telegram
@@ -269,8 +271,7 @@ public class ApiCrypto {
     @RequestMapping(value = "generateTelegram", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
-    public ResponseEntity generateTelegram(@RequestParam("count") Integer count,
-                                           @RequestParam("ip") String ip,
+    public ResponseEntity generateTelegram(@RequestParam("ip") String ip,
                                            @RequestParam("sleep") Integer sleep,
                                            @RequestParam("status") Boolean status) {
 
@@ -432,35 +433,31 @@ public class ApiCrypto {
     }
 
 
-
-    @RequestMapping(value = "sendTelegram", method = RequestMethod.GET,
+    @RequestMapping(value = "sendTelegram", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public Response sendTelegram() {
+    public ResponseEntity sendTelegram() {
         JSONObject jsonObject = new JSONObject();
 
         byte[] transactionType = new byte[]{31, 0, 0, 0};
         Long timestamp = Long.parseLong(new Timestamp(System.currentTimeMillis()).toString());
 
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
-    @GET
-    @Path("decode/{message}")
-    public Response decode(@PathParam("message") String message) {
+
+    @RequestMapping(value = "decode/{message}", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity decode(@PathVariable("message") String message) {
+
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("decodeBase58", Arrays.toString(Base58.decode(message)));
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
-    @GET
-    @Path("encode/{message}")
-    public Response encode(@PathParam("message") String message) {
+
+    @RequestMapping(value = "encode/{message}", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity encode(@PathVariable("message") String message) {
         JSONObject jsonObject = new JSONObject();
 
         String[] charString = (message.replace("[", "")
@@ -473,16 +470,14 @@ public class ApiCrypto {
         }
 
         jsonObject.put("encodeBase58", Base58.encode(bytes));
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
+
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
     /**
      * Generate byte code.
      *
-     * @param value JSON string contains param for generate byte code
+     * @param jsonParse JSON string contains param for generate byte code
      * @return JSON string with byte code
      *
      * <h2>Example request</h2>
@@ -513,11 +508,11 @@ public class ApiCrypto {
      * cv29XuTx1xnr2pogF9v4WVSdZJcyyp72WoTZoGWMDtTsL4pphNKXQR2Qrc"
      * }
      */
-    @POST
-    @Path("generateByteCode")
-    public Response generateByteCode(String value) throws Exception {
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
+
+
+    @RequestMapping(value = "generateByteCode", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity generateByteCode (@RequestBody JSONObject jsonParse) throws Exception {
 
         String recipient = jsonParse.get("recipient").toString();
         String creator = jsonParse.get("creator").toString();
@@ -528,7 +523,7 @@ public class ApiCrypto {
         String description = jsonParse.get("description").toString();
         int expire = Integer.valueOf(jsonParse.get("expire").toString());
         double amount = Double.parseDouble(jsonParse.get("amount").toString());
-        long timestamp = ntp.NTP.getTime();
+        long timestamp = NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
         String publicKeyCreator = jsonParse.get("publicKeyCreator").toString();
         String privateKeyCreator = jsonParse.get("privateKeyCreator").toString();
@@ -556,9 +551,9 @@ public class ApiCrypto {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("byteCode", byteCode);
-        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
-                .header("Access-Control-Allow-Origin", "*")
-                .entity(jsonObject.toJSONString())
-                .build();
+
+    return ResponseEntity.ok(jsonObject.toJSONString());
+
+
     }
 }

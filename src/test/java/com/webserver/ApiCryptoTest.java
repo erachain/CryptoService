@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -26,7 +27,7 @@ import static org.junit.Assert.*;
 
 public class ApiCryptoTest extends SetSettingFile {
 
-    private static final String MESSAGE = "Test message for check encrypt/decrypt";
+    private static final String MESSAGE = "Test message for check encrypt and decrypt";
     private static final String SEED_RECIPIENT = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
     private static final String SEED_CREATOR = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
     private static String SEED_ACCOUNT1;
@@ -177,9 +178,9 @@ public class ApiCryptoTest extends SetSettingFile {
 
     @Test
     public void sign() throws Exception {
-        Object result = new ApiCrypto().sign((JSONObject) new JSONParser().parse("{\"publicKey\":\"" + Account1_publicKey + "\",\n" +
+        Object result = new ApiCrypto().sign((JSONObject) new JSONParser().parse("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"privateKey\":\"" + Account1_privateKey + "\"," +
-                " \"message\":\"" + MESSAGE + "\"}"));
+                " \"message\":\""+ Base58.encode(MESSAGE.getBytes("UTF-8")) + "\"}"));
 
         Object sign = ((ResponseEntity) result).getBody();
         JSONParser jsonParser = new JSONParser();
