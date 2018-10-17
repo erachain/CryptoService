@@ -1,11 +1,9 @@
 package com;
 
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -20,30 +18,25 @@ import java.util.jar.Manifest;
 @SpringBootApplication
 public class Start {
 
-    @Bean
-    public ServletRegistrationBean dispatcherRegistration() {
-        return new ServletRegistrationBean(dispatcherServlet());
-    }
-
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
     public DispatcherServlet dispatcherServlet() {
-        return new LoggableDispatcherServlet();
+        return new Logging();
     }
-    // static org.apache.log4j.Logger LOGGER = Logger.getLogger(Start.class.getName());
 
     public static void main(String args[]) throws Exception {
 
         SpringApplication.run(Start.class);
 
         System.out.println("Build info: " + getManifestInfo());
-        File log4j = new File("log4j.properties");
+        File log4j = new File("src\\main\\resources\\log4j.properties");
         if (log4j.exists()) {
             PropertyConfigurator.configure(log4j.getAbsolutePath());
-        } else {
+        }
+        else {
             try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
                 PropertyConfigurator.configure(inputStream);
-                //        LOGGER.error("log4j.properties not found: " + log4j.getAbsolutePath() + ", using default.");
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 System.out.println("Error: missing configuration log4j file.");
                 System.exit(-1);
             }
@@ -59,7 +52,7 @@ public class Start {
                 Manifest manifest = new Manifest(resources.nextElement().openStream());
                 Attributes attributes = manifest.getMainAttributes();
                 String implementationTitle = attributes.getValue("Implementation-Title");
-                if (implementationTitle != null) { // && implementationTitle.equals(applicationName))
+                if (implementationTitle != null) {
                     String implementationVersion = attributes.getValue("Implementation-Version");
                     String buildTime = attributes.getValue("Build-Time");
                     return implementationVersion + " build " + buildTime;
