@@ -1,6 +1,7 @@
 package com;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class Logging extends DispatcherServlet {
 
-    private final Logger logger = Logger.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {

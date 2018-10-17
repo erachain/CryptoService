@@ -228,7 +228,6 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generateAccount", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-
     public ResponseEntity generateAccount(@RequestBody JSONObject value) throws ParseException {
 
         JSONObject jsonObject = value;
@@ -423,7 +422,6 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "stopGenerate", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-
     public ResponseEntity stopGenerateTelegram(@RequestParam("status") Boolean status) {
 
         this.status = status;
@@ -453,7 +451,6 @@ public class ApiCrypto {
         jsonObject.put("decodeBase58", Arrays.toString(Base58.decode(message)));
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
-
 
     @RequestMapping(value = "encode/{message}", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
@@ -508,8 +505,6 @@ public class ApiCrypto {
      * cv29XuTx1xnr2pogF9v4WVSdZJcyyp72WoTZoGWMDtTsL4pphNKXQR2Qrc"
      * }
      */
-
-
     @RequestMapping(value = "generateByteCode", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
     public ResponseEntity generateByteCode (@RequestBody JSONObject jsonParse) throws Exception {
@@ -552,8 +547,6 @@ public class ApiCrypto {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("byteCode", byteCode);
 
-    return ResponseEntity.ok(jsonObject.toJSONString());
-
-
+        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 }
