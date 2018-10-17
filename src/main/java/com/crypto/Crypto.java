@@ -4,6 +4,7 @@ import com.google.common.primitives.Bytes;
 import com.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Pair;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -165,7 +166,6 @@ public class Crypto {
                 //{
                 List<Byte> addressList = new ArrayList<>();
 
-
                 addressList.addAll(Bytes.asList(addressBytes));
 
                 //REMOVE CHECKSUM
@@ -186,7 +186,6 @@ public class Crypto {
                 return Arrays.equals(checkSum, checkSumTwo);
                 //}
             }
-
             return false;
         } catch (Exception e) {
             //ERROR DECODING

@@ -7,10 +7,12 @@ import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoC
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.DispatcherServlet;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -43,7 +45,7 @@ public class Start {
         }
     }
 
-    public static String getManifestInfo() throws IOException {
+    private static String getManifestInfo() throws IOException {
         Enumeration<URL> resources = Thread.currentThread()
                 .getContextClassLoader()
                 .getResources("META-INF/MANIFEST.MF");
@@ -55,6 +57,9 @@ public class Start {
                 if (implementationTitle != null) {
                     String implementationVersion = attributes.getValue("Implementation-Version");
                     String buildTime = attributes.getValue("Build-Time");
+                    if (buildTime == null) {
+                        buildTime = new Timestamp(System.currentTimeMillis()).toString();
+                    }
                     return implementationVersion + " build " + buildTime;
                 }
             } catch (IOException e) {

@@ -18,7 +18,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 @Controller
@@ -90,8 +92,8 @@ public class ApiCrypto {
     public ResponseEntity generateKeyPair(@PathVariable("seed") String seed) {
 
         Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(Base58.decode(seed));
-
         JSONObject jsonObject = new JSONObject();
+
         jsonObject.put("publicKey", Base58.encode(keyPair.getB()));
         jsonObject.put("privateKey", Base58.encode(keyPair.getA()));
 
@@ -115,7 +117,7 @@ public class ApiCrypto {
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] privateKey = Base58.decode(jsonObject.get("privateKey").toString());
 
-        String result = Base58.encode(AEScrypto.dataEncrypt(message.getBytes(), privateKey, publicKey));
+        String result = Base58.encode(AEScrypto.dataEncrypt(message.getBytes(Charset.forName("UTF-8")), privateKey, publicKey));
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("encrypted", result);
 
@@ -123,7 +125,7 @@ public class ApiCrypto {
     }
 
     /**
-     * Decrypt message
+     * decrypt message
      *
      * @param decrypt Json row contain keys and message for decrypt
      * @return Json string. if the decryption was successful, it will return the message in coding UTF-8.
@@ -138,13 +140,15 @@ public class ApiCrypto {
         byte[] message = Base58.decode(jsonObject.get("message").toString());
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] privateKey = Base58.decode(jsonObject.get("privateKey").toString());
+
         JSONObject jsonObjectResult = new JSONObject();
         byte[] result = AEScrypto.dataDecrypt(message, privateKey, publicKey);
 
-        if (result == null)
+        if (result == null) {
             jsonObjectResult.put("Error", "Cannot decrypt. Invalid keys.");
-        else
+        } else {
             jsonObjectResult.put("decrypted", new String(result, StandardCharsets.UTF_8));
+        }
 
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
@@ -297,7 +301,6 @@ public class ApiCrypto {
 
         Random random = new Random();
 
-
         thread = new Thread(() -> {
             do {
                 LOGGER.debug("send");
@@ -426,5 +429,136 @@ public class ApiCrypto {
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("status sending telegrams", this.status);
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
+    }
+
+
+
+    @RequestMapping(value = "sendTelegram", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public Response sendTelegram() {
+        JSONObject jsonObject = new JSONObject();
+
+        byte[] transactionType = new byte[]{31, 0, 0, 0};
+        Long timestamp = Long.parseLong(new Timestamp(System.currentTimeMillis()).toString());
+
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    @GET
+    @Path("decode/{message}")
+    public Response decode(@PathParam("message") String message) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("decodeBase58", Arrays.toString(Base58.decode(message)));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    @GET
+    @Path("encode/{message}")
+    public Response encode(@PathParam("message") String message) {
+        JSONObject jsonObject = new JSONObject();
+
+        String[] charString = (message.replace("[", "")
+                .replace("]", "")).split(",");
+
+        byte[] bytes = new byte[]{};
+        for (String val : charString) {
+            byte[] temp = new byte[]{Byte.valueOf((val.replace('"', ' ')).trim())};
+            bytes = Bytes.concat(bytes, temp);
+        }
+
+        jsonObject.put("encodeBase58", Base58.encode(bytes));
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
+    }
+
+    /**
+     * Generate byte code.
+     *
+     * @param value JSON string contains param for generate byte code
+     * @return JSON string with byte code
+     *
+     * <h2>Example request</h2>
+     * {
+     * "recipient": "7Dpv5Gi8HjCBgtDN1P1niuPJQCBQ5H8Zob",
+     * "creator":"7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx",
+     * "title": "9160010011",
+     * "orderNumber": "ORDER #1",
+     * "orderUser": "9160010011",
+     * "details": "Оплата интернет заказа. НДС не облагается",
+     * "description": "заказ",
+     * "expire": 35,
+     * "amount": 15.06,
+     * "encrypt": true,
+     * "keyAsset":643,
+     * "publicKeyCreator": "AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb",
+     * "privateKeyCreator": "5BMJVxNYHUBWkZKrcbL4stq2i975auVqmhpUmmu4d3vR15dvF7BMkzz1sDidRqTKsrCeiNFCPA9uss6P3TxqszMY",
+     * "publicKeyRecipient":"2M9WSqXrpmRzaQkxjcWKnrABabbwqjPbJktBDbPswgL7"
+     * }
+     *
+     * <h2>Example response</h2>
+     * {
+     * "byteCode": "65EM4ncMSGkeqTEU4X5g21Mb78Z7sYoGRQzdjasXCuoPWDmxVUVR6dsemqFGQXS4E37ap7jSNwmKTtBfHUhzd9ZHvN
+     * jgmmFmXBXwFBmTgYFccsDR3US5977NwaoZXryGy8DoMUqSyEwbbjQPtofi7qqv2ShxoZfiMo3V6h1aaAPNLcTnSm9cyrRFh2ukDS1Hf
+     * AC9QQPu7fiHVXnS6gefCgmfM6Q7zKetRhH6XYf4Md8JkTw3d6V5Z2gcp1s1h6aNUiVTyJ68BEvi7eaMNEzsPHmjZEhoZdegLwMnBSGu
+     * qrddSRLjyQybGEL2HgWMbV5Nd6wzabRCrgXSKTXSiEEokk3wp4W1MR45v9dutwihmWye5xwu1vhyBFWJ6LrmKnuCHQchjX2x3koPv2M
+     * EQeT6tGZBPHRVPLT2xxbsaRZuRbExEXpM3BaENEQCwEsUiHgYH4V7tkjazDMwqKULmsWLwaFmdVjv6H6CkdPE1ti3LXtEDdSFZxRh5v
+     * cv29XuTx1xnr2pogF9v4WVSdZJcyyp72WoTZoGWMDtTsL4pphNKXQR2Qrc"
+     * }
+     */
+    @POST
+    @Path("generateByteCode")
+    public Response generateByteCode(String value) throws Exception {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonParse = (JSONObject) jsonParser.parse(value);
+
+        String recipient = jsonParse.get("recipient").toString();
+        String creator = jsonParse.get("creator").toString();
+        String title = jsonParse.get("title").toString();
+        String orderNumber = jsonParse.get("orderNumber").toString();
+        String orderUser = jsonParse.get("orderUser").toString();
+        String details = jsonParse.get("details").toString();
+        String description = jsonParse.get("description").toString();
+        int expire = Integer.valueOf(jsonParse.get("expire").toString());
+        double amount = Double.parseDouble(jsonParse.get("amount").toString());
+        long timestamp = ntp.NTP.getTime();
+        byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
+        String publicKeyCreator = jsonParse.get("publicKeyCreator").toString();
+        String privateKeyCreator = jsonParse.get("privateKeyCreator").toString();
+        String publicKeyRecipient = jsonParse.get("publicKeyRecipient").toString();
+        long key = Long.parseLong(jsonParse.get("keyAsset").toString());
+        JSONObject jsonMessage = new JSONObject();
+
+        jsonMessage.put("date", System.currentTimeMillis());
+        jsonMessage.put("order", orderNumber);
+        jsonMessage.put("user", title);
+        jsonMessage.put("curr", key);
+        jsonMessage.put("sum", amount);
+        jsonMessage.put("title", title);
+        jsonMessage.put("details", details);
+        jsonMessage.put("description", description);
+        jsonMessage.put("expire", expire);
+
+        SendTX tx = new SendTX(publicKeyCreator, privateKeyCreator, recipient, publicKeyRecipient,
+                title, jsonMessage.toJSONString(),
+                BigDecimal.valueOf(amount),
+                timestamp, key, (byte) 0, encrypt);
+
+        tx.sign(new Pair<>(Base58.decode(privateKeyCreator), Base58.decode(publicKeyCreator)));
+        String byteCode = Base58.encode(tx.toBytes(true));
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("byteCode", byteCode);
+        return Response.status(200).header("Content-Type", "application/json; charset=utf-8")
+                .header("Access-Control-Allow-Origin", "*")
+                .entity(jsonObject.toJSONString())
+                .build();
     }
 }
