@@ -1,5 +1,6 @@
 package com;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,7 +36,6 @@ public class Start {
         SpringApplication.run(Start.class);
 
         System.out.println("Build info: " + getManifestInfo());
-
         File log4j = new File("log4j.properties");
         if (log4j.exists()) {
             PropertyConfigurator.configure(log4j.getAbsolutePath());
@@ -48,7 +48,7 @@ public class Start {
                 System.exit(-1);
             }
         }
-}
+    }
 
     public static String getManifestInfo() throws IOException {
         Enumeration<URL> resources = Thread.currentThread()

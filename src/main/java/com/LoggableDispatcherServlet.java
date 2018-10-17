@@ -1,7 +1,6 @@
 package com;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class LoggableDispatcherServlet extends DispatcherServlet {
 
-    private final Log logger = LogFactory.getLog(getClass());
+    private final Logger logger = Logger.getLogger(getClass());
 
     @Override
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -33,10 +32,12 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         try {
             super.doDispatch(request, response);
         } finally {
-
+            String responseBody = new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
+            System.out.println(responseBody);
             System.out.println(request.getRequestURL());
-            //System.out.println(request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual));
+            //logger.info(responseBody);
 
+            //System.out.println(request.getReader().lines().reduce("", (accumulator, actual) -> accumulator + actual));
             updateResponse(response);
         }
     }
