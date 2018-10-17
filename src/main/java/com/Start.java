@@ -1,13 +1,15 @@
 package com;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.PropertyConfigurator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
+import org.springframework.web.servlet.DispatcherServlet;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.jar.Attributes;
@@ -15,12 +17,30 @@ import java.util.jar.Manifest;
 
 @SpringBootApplication
 public class Start {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Start.class);
+
+    @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
+    public DispatcherServlet dispatcherServlet() {
+        return new Logging();
+    }
 
     public static void main(String args[]) throws Exception {
-        LOGGER.info("Started Build " + getManifestInfo());
 
         SpringApplication.run(Start.class);
+
+        System.out.println("Build info: " + getManifestInfo());
+        File log4j = new File("src\\main\\resources\\log4j.properties");
+        if (log4j.exists()) {
+            PropertyConfigurator.configure(log4j.getAbsolutePath());
+        }
+        else {
+            try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
+                PropertyConfigurator.configure(inputStream);
+            }
+            catch (Exception e) {
+                System.out.println("Error: missing configuration log4j file.");
+                System.exit(-1);
+            }
+        }
     }
 
     public static String getManifestInfo() throws IOException {
@@ -32,7 +52,7 @@ public class Start {
                 Manifest manifest = new Manifest(resources.nextElement().openStream());
                 Attributes attributes = manifest.getMainAttributes();
                 String implementationTitle = attributes.getValue("Implementation-Title");
-                if (implementationTitle != null) { // && implementationTitle.equals(applicationName))
+                if (implementationTitle != null) {
                     String implementationVersion = attributes.getValue("Implementation-Version");
                     String buildTime = attributes.getValue("Build-Time");
                     return implementationVersion + " build " + buildTime;
@@ -42,15 +62,5 @@ public class Start {
             }
         }
         return "Current Version";
-    }
-
-    @Bean
-    public CommonsRequestLoggingFilter requestLoggingFilter() {
-        CommonsRequestLoggingFilter loggingFilter = new CommonsRequestLoggingFilter();
-        loggingFilter.setIncludeHeaders(true);
-        loggingFilter.setIncludeQueryString(true);
-        loggingFilter.setIncludePayload(true);
-        loggingFilter.setIncludeClientInfo(true);
-        return loggingFilter;
     }
 }
