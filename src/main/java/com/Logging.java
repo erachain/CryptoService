@@ -37,12 +37,14 @@ public class Logging extends DispatcherServlet {
 
         finally {
 
-            logger.info("Response body:");
-            logger.info(multiReadRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+
             logger.info(request.getMethod() + " Request to " + request.getRequestURL());
             Collections.list(multiReadRequest.getHeaderNames())
                     .forEach(s -> logger.info(s + ": " + multiReadRequest.getHeader(s)));
-            logger.info("Response Code: " + response.getStatus());
+            logger.info("Request body:");
+            logger.info(multiReadRequest.getReader().lines().collect(Collectors.joining(System.lineSeparator())));
+            logger.info("Status Code: " + response.getStatus());
+
             String responseBody = new String(((ContentCachingResponseWrapper) response).getContentAsByteArray());
             logger.info(responseBody);
             updateResponse(response);
