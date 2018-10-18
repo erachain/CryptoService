@@ -26,7 +26,6 @@ ext {
     git = org.ajoberstar.grgit.Grgit.open()
     rev = git.head().id
     rev = git.head().getAbbreviatedId(8)
-    grgitVersion = ''
     slf4jVersion = '1.7.25'
     jettyVersion = '9.4.12.v20180830'
     jerseyVersion = '2.27'
@@ -45,6 +44,10 @@ group 'CryptoService'
 version "1.0-${git.head().abbreviatedId}"
 
 sourceCompatibility = 1.8
+
+compileJava {
+    options.encoding = "UTF-8"
+}
 
 repositories {
     mavenCentral()
