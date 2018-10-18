@@ -1,16 +1,12 @@
 package com;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.DispatcherServlet;
 
-
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Enumeration;
@@ -30,19 +26,6 @@ public class Start {
         SpringApplication.run(Start.class);
 
         System.out.println("Build info: " + getManifestInfo());
-        File log4j = new File("src\\main\\resources\\log4j.properties");
-        if (log4j.exists()) {
-            PropertyConfigurator.configure(log4j.getAbsolutePath());
-        }
-        else {
-            try (InputStream inputStream = ClassLoader.class.getResourceAsStream("/log4j/log4j.default")) {
-                PropertyConfigurator.configure(inputStream);
-            }
-            catch (Exception e) {
-                System.out.println("Error: missing configuration log4j file.");
-                System.exit(-1);
-            }
-        }
     }
 
     private static String getManifestInfo() throws IOException {

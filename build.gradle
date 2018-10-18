@@ -26,6 +26,7 @@ ext {
     git = org.ajoberstar.grgit.Grgit.open()
     rev = git.head().id
     rev = git.head().getAbbreviatedId(8)
+    grgitVersion = ''
     slf4jVersion = '1.7.25'
     jettyVersion = '9.4.12.v20180830'
     jerseyVersion = '2.27'
@@ -117,6 +118,5 @@ dependencies {
     compile "org.springframework.boot:spring-boot:${springbootVersion}"
     compile("org.springframework.boot:spring-boot-starter-web:${springbootVersion}")
     compile "org.springframework.boot:spring-boot-starter-log4j2:${springbootVersion}"
-    compile 'log4j:log4j:1.2.17'
     testCompile "junit:junit:${junitVersion}"
 }
