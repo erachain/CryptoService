@@ -43,6 +43,10 @@ version "1.0-${git.head().abbreviatedId}"
 
 sourceCompatibility = 1.8
 
+compileJava {
+    options.encoding = "UTF-8"
+}
+
 repositories {
     mavenCentral()
 }
