@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class SetSettingFile {
@@ -21,6 +23,8 @@ public class SetSettingFile {
     static ArrayList<String> WHITE_LIST = new ArrayList<>();
     static String SEED_CREATOR;
     static String SEED_RECIPIENT;
+    static Integer API_PORT = 9067;
+    static Map PEERS = new HashMap();
     private final static Logger LOGGER = LoggerFactory.getLogger(SetSettingFile.class);
 
     /**
@@ -36,11 +40,23 @@ public class SetSettingFile {
             JSONObject jsonObject = new JSONObject();
             FileWriter fileWriter = new FileWriter("setting.json");
 
+            /**
+             * test node (era 59,60,61,62)
+             */
+            Map node = new HashMap() {{
+                put("46.101.108.143", "ADdtwo8XHwfbsNiTSikrpFHiHBANqUrBMJQxhvg4JRgV");
+                put("207.154.246.66", "ABRjfyP7zVdtuuhEaTogtcJNUdU1hcop4zG4z2JiVjhR");
+                put("207.154.242.242", "9EVLYvNzyxMdGcKJ39ousJbTxGkAvoiLuTaJZdfPcdyX");
+                put("138.197.178.85", "6Z7wVN265F8WDFJHF2vWRPgryHs4jZp6oNuqoojwrQm7");
+            }};
+
+
             ArrayList<String> arrayList = new ArrayList<>();
             jsonObject.put("bind", "127.0.0.1");
             arrayList.add("127.0.0.1");
             jsonObject.put("port", "8181");
             jsonObject.put("ip", arrayList);
+            jsonObject.put("peers", new JSONObject(node));
             jsonObject.put("seed_creator", "FwLWGTTDEjTmJPQqrWwAWoi8dT5zwrmZiRkLUoQVkzRy");
             jsonObject.put("seed_recipient","3mhnpNULsG8qKgwFresGvY5uVw1ETXSgS4cPx7avZjpP");
             fileWriter.write(jsonObject.toJSONString());
@@ -66,10 +82,18 @@ public class SetSettingFile {
             SEED_RECIPIENT=jsonObject.get("seed_recipient").toString();
             LOGGER.info("RECIPIENT: " + SEED_RECIPIENT);
             JSONArray jsonArray = (JSONArray) jsonObject.get("ip");
+            JSONObject jsonArrayNode = (JSONObject) jsonObject.get("peers");
 
             for (Object aJsonArray : jsonArray) {
                 WHITE_LIST.add(aJsonArray.toString());
             }
+
+            for (Object key : jsonArrayNode.keySet()) {
+
+                jsonArrayNode.get(key);
+                PEERS.put(key, jsonArrayNode.get(key));
+            }
+
         } catch (Exception e) {
             throw new Exception(e);
         }

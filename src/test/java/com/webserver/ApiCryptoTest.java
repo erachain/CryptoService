@@ -1,13 +1,13 @@
 package com.webserver;
 
-import com.tx.SendTX;
-import com.utils.Pair;
-import com.ntp.NTP;
 import com.crypto.Base58;
 import com.crypto.Crypto;
 import com.crypto.Ed25519;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
+import com.tx.SendTX;
+import com.utils.Pair;
+import com.utils.StringRandomGen;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -27,9 +26,9 @@ import static org.junit.Assert.*;
 
 public class ApiCryptoTest extends SetSettingFile {
 
-    private static final String MESSAGE = "Test message for check encrypt and decrypt";
-    private static final String SEED_RECIPIENT = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
-    private static final String SEED_CREATOR = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
+    private static String MESSAGE = "Test message for check encrypt and decrypt";
+    private static String SEED_RECIPIENT = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
+    private static String SEED_CREATOR = "8HsDxvcaRfi13CMYPoEBTCKo7C8FSSyq1mBsEBAJTtEV";
     private static String SEED_ACCOUNT1;
     private static String SEED_ACCOUNT2;
     private static String Account1_privateKey;
@@ -38,7 +37,7 @@ public class ApiCryptoTest extends SetSettingFile {
     private static String Account2_publicKey;
     private String MESSAGE_ENCRYPT;
     private String SIGN;
-
+    private Boolean status;
     /*
      * Variable for testing generate byte code
      * */
@@ -241,7 +240,7 @@ public class ApiCryptoTest extends SetSettingFile {
      */
     @Ignore
     @Test
-    public void generateTelegram() throws Exception {
+    public void generateTelegram() {
         JSONObject jsonObject = new JSONObject();
         ArrayList arrayListRecipient = new ArrayList();
         for (int i = 1; i < 5; i++) {
@@ -393,5 +392,179 @@ public class ApiCryptoTest extends SetSettingFile {
         String message = jsonObj.toJSONString();
 
         String d = "";
+    }
+
+    @Test
+    public void generateTelegramRandomPeer() throws Exception {
+
+        this.status = true;
+        Random random = new Random();
+        JSONObject jsonObject = new JSONObject();
+        ArrayList<String> arrayListRecipient = new ArrayList<>();
+        Pair<byte[], byte[]> KeyPairRecipient = null;
+        for (int i = 1; i < 5; i++) {
+            int nonce = i;
+            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
+            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+            KeyPairRecipient = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(KeyPairRecipient.getB());
+            arrayListRecipient.add(address);
+        }
+
+        Pair<byte[], byte[]> finalKeyPairRecipient = KeyPairRecipient;
+        // Thread thread = new Thread(() -> {
+        do {
+            int currentPeer = random.nextInt(PEERS.size());
+            long timestamp = com.ntp.NTP.getTime();
+            Pair<byte[], byte[]> keyPairCreator = null;
+            String byteCode = "";
+            String ipPeeer = new ArrayList<String>(PEERS.keySet()).get(currentPeer);
+            String seedPeer = PEERS.get(ipPeeer).toString();
+
+            ArrayList<String> arrayListCreator = new ArrayList<>();
+            for (int i = 1; i < 10; i++) {
+                int nonce = i;
+                byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+                byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seedPeer), nonceBytes);
+                byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+                keyPairCreator = Crypto.getInstance().createKeyPair(accountSeed);
+                String address = Crypto.getInstance().getAddress(keyPairCreator.getB());
+                arrayListCreator.add(address);
+            }
+
+            JSONObject message = new JSONObject();
+            if (this.status == true) {
+                Integer typeTelegram = random.nextInt(3);
+                String user = "", expire = "", randomPrice = "", phone = "", order = "";
+                String encrypt = "false";
+                long date = System.currentTimeMillis();
+                Object recipient = arrayListRecipient.get(random.nextInt(4));
+                Object creator = arrayListCreator.get(random.nextInt(9));
+                StringRandomGen randomString = new StringRandomGen();
+                // correct message
+                if (typeTelegram == 1) {
+                    user = String.valueOf(random.nextInt(33465666));
+                    phone = String.valueOf(random.nextInt(999 - 100) + 100) +
+                            String.valueOf(random.nextInt(999 - 100) + 100) +
+                            String.valueOf(random.nextInt(9999 - 1000) + 1000);
+                    expire = String.valueOf(random.nextInt(1243555959));
+                    randomPrice = String.valueOf(random.nextInt(10000));
+                    order = String.valueOf(random.nextInt(52193287));
+                    if (random.nextInt(2) == 1)
+                        encrypt = String.valueOf(random.nextBoolean());
+                    // all wrong message
+                } else if (typeTelegram == 0) {
+
+                    user = randomString.generateRandomString();
+                    expire = randomString.generateRandomString();
+                    phone = randomString.generateRandomString();
+                    randomPrice = randomString.generateRandomString();
+                    order = randomString.generateRandomString();
+                    encrypt = (randomString.generateRandomString());
+
+                }
+                // random message
+                else if (typeTelegram == 2) {
+
+                    Integer countField = random.nextInt(8);
+                    for (int i = 0; i < countField; i++) {
+                        String keyS = randomString.generateRandomString();
+                        String val = randomString.generateRandomString();
+                        message.put(keyS, val);
+                    }
+                    jsonObject.put("message", message);
+                    message.put("curr", "643");
+
+                    switch (random.nextInt(3)) {
+                        case 0:
+                            jsonObject.put("encrypt", "false");
+                            break;
+                        case 1:
+                            jsonObject.put("encrypt", "true");
+                            break;
+                    }
+                    jsonObject.put("title", randomString.generateRandomString());
+                    jsonObject.put("password", "123456789");
+                }
+
+                jsonObject.put("sender", creator);
+                jsonObject.put("recipient", recipient);
+
+                if (typeTelegram == 1 || typeTelegram == 0) {
+                    message.put("data", date);
+                    message.put("order", order);
+                    message.put("user", user);
+                    message.put("curr", "643");
+                    message.put("sum", randomPrice);
+                    message.put("phone", phone);
+                    message.put("expire", expire);
+                    jsonObject.put("message", message);
+                    jsonObject.put("title", ipPeeer);
+                    jsonObject.put("encrypt", encrypt);
+                    jsonObject.put("password", "123456789");
+
+
+                    SendTX tx = new SendTX(Base58.encode(keyPairCreator.getB()),
+                            Base58.encode(keyPairCreator.getA()),
+                            recipient.toString(),
+                            Base58.encode(finalKeyPairRecipient.getB()),
+                            ipPeeer,
+                            message.toJSONString(),
+                            BigDecimal.ZERO,
+                            //BigDecimal.valueOf(orderAmount),
+                            timestamp, orderAssetKey, (byte) 0, encrypt == "true" ? (byte) 1 : (byte) 0);
+
+
+                    tx.sign(keyPairCreator);
+                    byteCode = Base58.encode(tx.toBytes(true));
+                }
+
+                String resSend = null;
+                try {
+
+                    if (ipPeeer == "207.154.242.242" || ipPeeer == "138.197.178.85:9067") {
+
+                    }
+                    if (byteCode != "") {
+                        try {
+                            resSend = ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", byteCode);
+                        } catch (Exception e) {
+                            System.out.println(ipPeeer + " byteCode for peer: " + byteCode);
+                        }
+                    }
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                JSONParser jsonParser = new JSONParser();
+                JSONObject object = null;
+                try {
+                    // object = (JSONObject) jsonParser.parse(resSend.replace("null", ""));
+                } catch (Exception e) {
+                    String d = "";
+                }
+
+
+               /* if (object.get("error") != null) {
+                    //TODO return Error result
+                }*/
+                Thread.sleep(100);
+            } else {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        } while (true);
+
+
+        // thread.start();
+
+        // JSONObject result = new JSONObject();
+        //result.put("status sending telegrams", this.status);
+
     }
 }

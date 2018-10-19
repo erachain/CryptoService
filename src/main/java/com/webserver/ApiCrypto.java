@@ -1,16 +1,15 @@
 package com.webserver;
 
-import com.ntp.NTP;
-import com.tx.SendTX;
-import com.utils.Pair;
-import com.utils.StringRandomGen;
 import com.crypto.AEScrypto;
 import com.crypto.Base58;
 import com.crypto.Crypto;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
+import com.ntp.NTP;
+import com.tx.SendTX;
+import com.utils.Pair;
+import com.utils.StringRandomGen;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import static com.webserver.SetSettingFile.*;
+
 @Controller
 @RequestMapping("/crypto")
 @CrossOrigin
@@ -35,6 +36,9 @@ public class ApiCrypto {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status;
+    public static Integer delay;
+
+    long orderAssetKey = 643L;
 
     @RequestMapping(method = RequestMethod.GET, produces = "application/json; charset=utf-8")
     @ResponseStatus(code = HttpStatus.OK)
@@ -255,65 +259,73 @@ public class ApiCrypto {
     /**
      * Generate random telegram. Wallet seed sender and wallet seed recipient set in setting.json.
      * If status true all telegram will sending. Status false suspending thread sending telegram.
+     * In the setting.json set ip and seed wallet nodes.
      *
-     * @param ip     address where the message will be sent with port
-     * @param sleep  delay between sending telegrams
-     * @param status status send telegram
+     * @param param  JSON param
      *
      *               <h2>Example request</h2>
-     *               http://127.0.0.1:8181/crypto/generateTelegram?count=10&ip=127.0.0.1:9068&sleep=10status=true
+     *               http://127.0.0.1:8181/crypto/generateTelegram?sleep=10status=true
+     *
+     *       body
+     *     {"status":"true", "delay": 100}
      *
      *               <h2>Example response</h2>
      *               {"status sending telegrams", "true"}
      * @return List telegram in JSON format
      */
-    @RequestMapping(value = "generateTelegram", method = RequestMethod.GET,
+    @RequestMapping(value = "generateTelegram", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
-    public ResponseEntity generateTelegram(@RequestParam("ip") String ip,
-                                           @RequestParam("sleep") Integer sleep,
-                                           @RequestParam("status") Boolean status) {
+    public ResponseEntity generateTelegram(@RequestBody JSONObject param) {
 
-        this.status = status;
+        this.status = Boolean.valueOf(param.get("status").toString());
+        this.delay = Integer.valueOf(param.get("delay").toString());
+        Random random = new Random();
         JSONObject jsonObject = new JSONObject();
         ArrayList<String> arrayListRecipient = new ArrayList<>();
+        Pair<byte[], byte[]> KeyPairRecipient = null;
         for (int i = 1; i < 5; i++) {
             int nonce = i;
             byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
-            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SetSettingFile.SEED_RECIPIENT), nonceBytes);
+            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
             byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
-            Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
-            String address = Crypto.getInstance().getAddress(keyPair.getB());
+            KeyPairRecipient = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(KeyPairRecipient.getB());
             arrayListRecipient.add(address);
         }
 
-        ArrayList<String> arrayListCreator = new ArrayList<>();
-        for (int i = 1; i < 10; i++) {
-            int nonce = i;
-            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
-            byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SetSettingFile.SEED_CREATOR), nonceBytes);
-            byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
-            Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
-            String address = Crypto.getInstance().getAddress(keyPair.getB());
-            arrayListCreator.add(address);
-        }
-
-
-        Random random = new Random();
+        Pair<byte[], byte[]> finalKeyPairRecipient = KeyPairRecipient;
 
         thread = new Thread(() -> {
             do {
-                LOGGER.debug("send");
+                int currentPeer = random.nextInt(PEERS.size());
+                long timestamp = com.ntp.NTP.getTime();
+                Pair<byte[], byte[]> keyPairCreator = null;
+                String byteCode = "";
+                String ipPeeer = new ArrayList<String>(PEERS.keySet()).get(currentPeer);
+                String seedPeer = PEERS.get(ipPeeer).toString();
+
+                ArrayList<String> arrayListCreator = new ArrayList<>();
+                for (int i = 1; i < 10; i++) {
+                    int nonce = i;
+                    byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+                    byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seedPeer), nonceBytes);
+                    byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+                    keyPairCreator = Crypto.getInstance().createKeyPair(accountSeed);
+                    String address = Crypto.getInstance().getAddress(keyPairCreator.getB());
+                    arrayListCreator.add(address);
+                }
+
                 JSONObject message = new JSONObject();
                 if (this.status == true) {
                     Integer typeTelegram = random.nextInt(3);
                     String user = "", expire = "", randomPrice = "", phone = "", order = "";
                     String encrypt = "false";
-
                     long date = System.currentTimeMillis();
                     Object recipient = arrayListRecipient.get(random.nextInt(4));
                     Object creator = arrayListCreator.get(random.nextInt(9));
                     StringRandomGen randomString = new StringRandomGen();
+                    // correct message
                     if (typeTelegram == 1) {
                         user = String.valueOf(random.nextInt(33465666));
                         phone = String.valueOf(random.nextInt(999 - 100) + 100) +
@@ -324,7 +336,7 @@ public class ApiCrypto {
                         order = String.valueOf(random.nextInt(52193287));
                         if (random.nextInt(2) == 1)
                             encrypt = String.valueOf(random.nextBoolean());
-
+                        // all wrong message
                     } else if (typeTelegram == 0) {
 
                         user = randomString.generateRandomString();
@@ -334,13 +346,15 @@ public class ApiCrypto {
                         order = randomString.generateRandomString();
                         encrypt = (randomString.generateRandomString());
 
-                    } else if (typeTelegram == 2) {
+                    }
+                    // random message
+                    else if (typeTelegram == 2) {
 
                         Integer countField = random.nextInt(8);
                         for (int i = 0; i < countField; i++) {
-                            String key = randomString.generateRandomString();
+                            String keyS = randomString.generateRandomString();
                             String val = randomString.generateRandomString();
-                            message.put(key, val);
+                            message.put(keyS, val);
                         }
                         jsonObject.put("message", message);
                         message.put("curr", "643");
@@ -369,30 +383,43 @@ public class ApiCrypto {
                         message.put("phone", phone);
                         message.put("expire", expire);
                         jsonObject.put("message", message);
-                        jsonObject.put("title", phone);
+                        jsonObject.put("title", ipPeeer);
                         jsonObject.put("encrypt", encrypt);
                         jsonObject.put("password", "123456789");
-                    }
 
-                    String resSend = null;
+
+                        SendTX tx = new SendTX(Base58.encode(keyPairCreator.getB()),
+                                Base58.encode(keyPairCreator.getA()),
+                                recipient.toString(),
+                                Base58.encode(finalKeyPairRecipient.getB()),
+                                ipPeeer,
+                                message.toJSONString(),
+                                BigDecimal.ZERO,
+                                //BigDecimal.valueOf(orderAmount),
+                                timestamp, orderAssetKey, (byte) 0, encrypt == "true" ? (byte) 1 : (byte) 0);
+                        try {
+                            tx.sign(keyPairCreator);
+                            byteCode = Base58.encode(tx.toBytes(true));
+                        } catch (Exception e) {
+
+                        }
+                    }
                     try {
-                        resSend = SetSettingFile.ResponseValueAPI("http://" + ip + "/telegrams/send", "POST", jsonObject.toJSONString());
+
+                        if (byteCode != "") {
+                            try {
+                                ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", byteCode);
+                            } catch (Exception e) {
+                                System.out.println(ipPeeer + " byteCode for peer: " + byteCode);
+                            }
+                        }
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    JSONParser jsonParser = new JSONParser();
 
-                    JSONObject object = null;
                     try {
-                        object = (JSONObject) jsonParser.parse(resSend.replace("null", ""));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    if (object.get("error") != null) {
-                        //TODO return Error result
-                    }
-                    try {
-                        Thread.sleep(sleep);
+                        Thread.sleep(this.delay);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -410,6 +437,7 @@ public class ApiCrypto {
 
         JSONObject result = new JSONObject();
         result.put("status sending telegrams", this.status);
+        result.put("delay", this.delay);
         return ResponseEntity.ok(result.toJSONString());
     }
 
@@ -417,19 +445,29 @@ public class ApiCrypto {
      * Method set status sending telegram.
      * True is set start. False stop
      *
-     * @param status set status stop/start sending telegram
-     * @return
+     * @param param JSON object with param. delay and status sending.
+     *
+     *              <h2> Example request</h2>
+     *
+     *              http://127.0.0.1:8181/crypto/EditSettingGenerate
+     *              in the body {"status":"false", "delay":1000 }
+     *
+     *              <h2>Example response</h2>
+     *          {"delay": 1000, "status sending telegrams": false}
+     *
+     * @return message about status sending telegram
      */
-    @RequestMapping(value = "stopGenerate", method = RequestMethod.GET,
+    @RequestMapping(value = "EditSettingGenerate", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity stopGenerateTelegram(@RequestParam("status") Boolean status) {
+    public ResponseEntity stopGenerateTelegram(@RequestBody JSONObject param) {
 
-        this.status = status;
+        this.status = Boolean.valueOf(param.get("status").toString());
+        this.delay = Integer.valueOf(param.get("delay").toString());
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("status sending telegrams", this.status);
+        jsonObjectResult.put("delay", this.delay);
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
-
 
     @RequestMapping(value = "sendTelegram", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
@@ -441,7 +479,6 @@ public class ApiCrypto {
 
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
-
 
     @RequestMapping(value = "decode/{message}", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
