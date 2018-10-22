@@ -264,7 +264,7 @@ public class ApiCrypto {
      * @param param  JSON param
      *
      *               <h2>Example request</h2>
-     *               http://127.0.0.1:8181/crypto/generateTelegram?sleep=10status=true
+     *               http://127.0.0.1:8181/crypto/generateTelegram
      *
      *       body
      *     {"status":"true", "delay": 100}
