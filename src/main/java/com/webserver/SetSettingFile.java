@@ -41,13 +41,14 @@ public class SetSettingFile {
             FileWriter fileWriter = new FileWriter("setting.json");
 
             /**
-             * test node (era 59,60,61,62)
+             * test node (era 59,60,61,62,idSys)
              */
             Map node = new HashMap() {{
                 put("46.101.108.143", "ADdtwo8XHwfbsNiTSikrpFHiHBANqUrBMJQxhvg4JRgV");
                 put("207.154.246.66", "ABRjfyP7zVdtuuhEaTogtcJNUdU1hcop4zG4z2JiVjhR");
                 put("207.154.242.242", "9EVLYvNzyxMdGcKJ39ousJbTxGkAvoiLuTaJZdfPcdyX");
                 put("138.197.178.85", "6Z7wVN265F8WDFJHF2vWRPgryHs4jZp6oNuqoojwrQm7");
+                put("89.235.184.251", "FwLWGTTDEjTmJPQqrWwAWoi8dT5zwrmZiRkLUoQVkzRy");
             }};
 
 
