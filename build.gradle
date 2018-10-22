@@ -34,7 +34,7 @@ ext {
     guavaVersion = '26.0-jre'
     jsonsimpleVersion = '1.1.1'
     commonsVersion = '3.6'
-    springbootVersion = '2.0.4.RELEASE'
+    springbootVersion = '2.0.5.RELEASE'
     springVersion = '5.0.8.RELEASE'
     junitVersion = '4.12'
     profile = project.hasProperty('profile') ? project['profile'] : 'local'
