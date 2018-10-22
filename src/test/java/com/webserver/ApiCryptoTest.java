@@ -394,6 +394,7 @@ public class ApiCryptoTest extends SetSettingFile {
         String d = "";
     }
 
+    @Ignore
     @Test
     public void generateTelegramRandomPeer() throws Exception {
 
