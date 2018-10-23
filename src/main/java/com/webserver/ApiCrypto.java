@@ -586,4 +586,34 @@ public class ApiCrypto {
 
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
+
+
+    /**
+     * Get info about sending telegram. GET
+     *
+     * <h2>Example request</h2>
+     * http://127.0.0.1:8181/crypto/info
+     *
+     * <h2>Example response</h2>
+     *
+     * {
+     * "delay": 500,
+     * "status sending telegrams": true
+     * }
+     *
+     * @return JSON string with setting parametr
+     */
+    @RequestMapping(value = "info", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public  ResponseEntity info()
+    {
+        JSONObject jsonObject = new JSONObject();
+
+        jsonObject.put("status sending telegrams", this.status);
+        jsonObject.put("delay", this.delay);
+
+        return ResponseEntity.ok(jsonObject.toJSONString());
+
+    }
+
 }
