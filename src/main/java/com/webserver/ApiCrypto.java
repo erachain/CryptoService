@@ -35,8 +35,8 @@ import static com.webserver.SetSettingFile.*;
 public class ApiCrypto {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
-    public static Boolean status;
-    public static Integer delay;
+    public static Boolean status = false;
+    public static Integer delay = Integer.MAX_VALUE;
 
     long orderAssetKey = 643L;
 
@@ -264,21 +264,21 @@ public class ApiCrypto {
      * @param param  JSON param
      *
      *               <h2>Example request</h2>
-     *               http://127.0.0.1:8181/crypto/generateTelegram
+     *               http://127.0.0.1:8181/crypto/generator/start
      *
      *       body
-     *     {"status":"true", "delay": 100}
+     *     {"delay": 100}
      *
      *               <h2>Example response</h2>
-     *               {"status sending telegrams", "true"}
+     *               {"status sending telegrams", "true", "delay": 100}
      * @return List telegram in JSON format
      */
-    @RequestMapping(value = "generateTelegram", method = RequestMethod.POST,
+    @RequestMapping(value = "generator/start", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
     public ResponseEntity generateTelegram(@RequestBody JSONObject param) {
 
-        this.status = Boolean.valueOf(param.get("status").toString());
+        this.status =true;
         this.delay = Integer.valueOf(param.get("delay").toString());
         Random random = new Random();
         JSONObject jsonObject = new JSONObject();
@@ -457,9 +457,9 @@ public class ApiCrypto {
      *
      * @return message about status sending telegram
      */
-    @RequestMapping(value = "EditSettingGenerate", method = RequestMethod.POST,
+    @RequestMapping(value = "generator/modify", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity stopGenerateTelegram(@RequestBody JSONObject param) {
+    public ResponseEntity modifyGenerateTelegram(@RequestBody JSONObject param) {
 
         this.status = Boolean.valueOf(param.get("status").toString());
         this.delay = Integer.valueOf(param.get("delay").toString());
@@ -592,7 +592,7 @@ public class ApiCrypto {
      * Get info about sending telegram. GET
      *
      * <h2>Example request</h2>
-     * http://127.0.0.1:8181/crypto/info
+     * http://127.0.0.1:8181/crypto/generator/state
      *
      * <h2>Example response</h2>
      *
@@ -603,17 +603,45 @@ public class ApiCrypto {
      *
      * @return JSON string with setting parametr
      */
-    @RequestMapping(value = "info", method = RequestMethod.GET,
+    @RequestMapping(value = "generator/state", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    public  ResponseEntity info()
-    {
+    public ResponseEntity stateGenerateTelegram() {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("status sending telegrams", this.status);
         jsonObject.put("delay", this.delay);
 
         return ResponseEntity.ok(jsonObject.toJSONString());
-
     }
 
+    /**
+     * Stop generating telegram
+     * HTTP Method POST
+     *
+     * @param state JSON object with state
+     *              <h2>Example request</h2>
+     *              http://127.0.0.1:8181/crypto/generator/stop
+     *              <p>
+     *              body{"status": false}
+     *
+     *
+     *              <h2>Example response</h2>
+     *              { "delay": 500,"status sending telegrams": false }
+     * @return
+     */
+
+    @RequestMapping(value = "generator/stop", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity stopGenerateTelegram(@RequestBody JSONObject state) {
+
+        JSONObject jsonObject = new JSONObject();
+        if (!Boolean.valueOf(state.get("status").toString())) {
+            this.status = false;
+        }
+
+        jsonObject.put("status sending telegrams", this.status);
+        jsonObject.put("delay", this.delay);
+
+        return ResponseEntity.ok(jsonObject.toJSONString());
+    }
 }
