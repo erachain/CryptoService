@@ -35,8 +35,8 @@ import static com.webserver.SetSettingFile.*;
 public class ApiCrypto {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
-    public static Boolean status;
-    public static Integer delay;
+    public static Boolean status = false;
+    public static Integer delay = Integer.MAX_VALUE;
 
     long orderAssetKey = 643L;
 
@@ -264,21 +264,21 @@ public class ApiCrypto {
      * @param param  JSON param
      *
      *               <h2>Example request</h2>
-     *               http://127.0.0.1:8181/crypto/generateTelegram
+     *               http://127.0.0.1:8181/crypto/generator/start
      *
      *       body
-     *     {"status":"true", "delay": 100}
+     *     {"delay": 100}
      *
      *               <h2>Example response</h2>
-     *               {"status sending telegrams", "true"}
+     *               {"status sending telegrams", "true", "delay": 100}
      * @return List telegram in JSON format
      */
-    @RequestMapping(value = "generateTelegram", method = RequestMethod.POST,
+    @RequestMapping(value = "generator/start", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
     public ResponseEntity generateTelegram(@RequestBody JSONObject param) {
 
-        this.status = Boolean.valueOf(param.get("status").toString());
+        this.status =true;
         this.delay = Integer.valueOf(param.get("delay").toString());
         Random random = new Random();
         JSONObject jsonObject = new JSONObject();
@@ -457,9 +457,9 @@ public class ApiCrypto {
      *
      * @return message about status sending telegram
      */
-    @RequestMapping(value = "EditSettingGenerate", method = RequestMethod.POST,
+    @RequestMapping(value = "generator/modify", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity stopGenerateTelegram(@RequestBody JSONObject param) {
+    public ResponseEntity modifyGenerateTelegram(@RequestBody JSONObject param) {
 
         this.status = Boolean.valueOf(param.get("status").toString());
         this.delay = Integer.valueOf(param.get("delay").toString());
