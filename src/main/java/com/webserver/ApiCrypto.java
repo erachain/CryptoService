@@ -592,7 +592,7 @@ public class ApiCrypto {
      * Get info about sending telegram. GET
      *
      * <h2>Example request</h2>
-     * http://127.0.0.1:8181/crypto/info
+     * http://127.0.0.1:8181/crypto/generator/state
      *
      * <h2>Example response</h2>
      *
@@ -603,17 +603,40 @@ public class ApiCrypto {
      *
      * @return JSON string with setting parametr
      */
-    @RequestMapping(value = "info", method = RequestMethod.GET,
+    @RequestMapping(value = "generator/state", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    public  ResponseEntity info()
-    {
+    public ResponseEntity stateGenerateTelegram() {
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("status sending telegrams", this.status);
         jsonObject.put("delay", this.delay);
 
         return ResponseEntity.ok(jsonObject.toJSONString());
-
     }
 
+    /**
+     * Stop generating telegram
+     * HTTP Method POST
+     *
+     *              <h2>Example request</h2>
+     *              http://127.0.0.1:8181/crypto/generator/stop
+     *              <p>
+
+     *              <h2>Example response</h2>
+     *              { "delay": 500,"status sending telegrams": false }
+     * @return
+     */
+
+    @RequestMapping(value = "generator/stop", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity stopGenerateTelegram() {
+
+            this.status = false;
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status sending telegrams", this.status);
+        jsonObject.put("delay", this.delay);
+
+        return ResponseEntity.ok(jsonObject.toJSONString());
+    }
 }
