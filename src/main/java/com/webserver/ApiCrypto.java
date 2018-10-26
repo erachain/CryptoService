@@ -25,6 +25,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static com.webserver.SetSettingFile.*;
 
@@ -37,6 +38,9 @@ public class ApiCrypto {
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     public static Boolean status = false;
     public static Integer delay = Integer.MAX_VALUE;
+    public static Integer countSend = 0;
+    public static long startTime;
+    public static long endTime;
 
     long orderAssetKey = 643L;
 
@@ -293,9 +297,8 @@ public class ApiCrypto {
             String address = Crypto.getInstance().getAddress(KeyPairRecipient.getB());
             arrayListRecipient.add(address);
         }
-
+        this.startTime = System.currentTimeMillis();
         Pair<byte[], byte[]> finalKeyPairRecipient = KeyPairRecipient;
-
         thread = new Thread(() -> {
             do {
                 int currentPeer = random.nextInt(PEERS.size());
@@ -318,6 +321,7 @@ public class ApiCrypto {
 
                 JSONObject message = new JSONObject();
                 if (this.status == true) {
+
                     Integer typeTelegram = random.nextInt(3);
                     String user = "", expire = "", randomPrice = "", phone = "", order = "";
                     String encrypt = "false";
@@ -409,6 +413,7 @@ public class ApiCrypto {
                         if (byteCode != "") {
                             try {
                                 ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", byteCode);
+                                this.countSend++;
                             } catch (Exception e) {
                                 System.out.println(ipPeeer + " byteCode for peer: " + byteCode);
                             }
@@ -605,12 +610,16 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generator/state", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity stateGenerateTelegram() {
+    public ResponseEntity stateGenerateTelegram() throws InterruptedException {
+
+
+
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("status sending telegrams", this.status);
         jsonObject.put("delay", this.delay);
-
+        jsonObject.put("count telegram", this.countSend);
+        jsonObject.put("work time", WorkTime());
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
@@ -630,13 +639,38 @@ public class ApiCrypto {
     @RequestMapping(value = "generator/stop", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
     public ResponseEntity stopGenerateTelegram() {
-
+        this.endTime = System.currentTimeMillis();
             this.status = false;
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("status sending telegrams", this.status);
         jsonObject.put("delay", this.delay);
+        jsonObject.put("work time", WorkTime());
 
         return ResponseEntity.ok(jsonObject.toJSONString());
+    }
+
+    private String WorkTime() {
+        long startCustomTime, endCustomTime;
+
+        if (startTime == 0)
+            startCustomTime = System.currentTimeMillis();
+        else
+            startCustomTime = startTime;
+
+        if (endTime == 0)
+            endCustomTime = System.currentTimeMillis();
+        else
+            endCustomTime = endTime;
+
+        long diffTime = endCustomTime - startCustomTime;
+
+        String time = String.format("%02d hour, %02d min, %02d sec",
+                TimeUnit.MILLISECONDS.toHours(diffTime),
+                TimeUnit.MILLISECONDS.toMinutes(diffTime),
+                TimeUnit.MILLISECONDS.toSeconds(diffTime) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(diffTime))
+        );
+        return time;
     }
 }
