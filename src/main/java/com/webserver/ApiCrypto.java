@@ -673,4 +673,19 @@ public class ApiCrypto {
         );
         return time;
     }
+
+    /**
+     *
+     * @param address is account to check
+     * @return
+     */
+    @RequestMapping(value = "verifyAccount/{account}", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    public ResponseEntity verifyAccount(@PathVariable("account") String address) {
+        Boolean verify = Crypto.getInstance().isValidAddress(address);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("verify account", verify);
+        return ResponseEntity.ok(jsonObject.toJSONString());
+    }
 }
