@@ -66,7 +66,7 @@ public class ApiCrypto {
      * @return JSON string seed in encode Base58
      *
      * <h2>Example request</h2>
-     * http://127.0.0.1:8080/crypto/generateSeed
+     * http://127.0.0.1:8181/crypto/generateSeed
      *
      * <h2>Example response</h2>
      * {"seed":"D9FFKCjo4cG2jL9FrZmXCKfQypZG8AdbnF7vtm5Aqou9"}
@@ -90,7 +90,7 @@ public class ApiCrypto {
      * <h2>Example request</h2>
      * GET
      * <br>
-     * http://127.0.0.1:8080/crypto/generateKeyPair/9hXpWzA6vfn7MkwrjxF2ZAHHuCsevDTauQ4in2hAfSNH
+     * http://127.0.0.1:8181/crypto/generateKeyPair/9hXpWzA6vfn7MkwrjxF2ZAHHuCsevDTauQ4in2hAfSNH
      *
      * <h2>Example response</h2>
      * {"publicKey":"BHJAVuNsvcjWy6jaaF85HHYzr9Up9rA4BW3xseUBs9Un",
