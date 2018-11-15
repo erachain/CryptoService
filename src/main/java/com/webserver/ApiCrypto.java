@@ -10,7 +10,6 @@ import com.tx.SendTX;
 import com.utils.Pair;
 import com.utils.StringRandomGen;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -36,11 +34,11 @@ import static com.webserver.SetSettingFile.*;
 public class ApiCrypto {
     private static Thread thread;
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
-    public static Boolean status = false;
-    public static Integer delay = Integer.MAX_VALUE;
-    public static Integer countSend = 0;
-    public static long startTime;
-    public static long endTime;
+    private static Boolean status = false;
+    private static Integer delay = Integer.MAX_VALUE;
+    private static Integer countSend = 0;
+    private static long startTime;
+    private static long endTime;
 
     long orderAssetKey = 643L;
 
@@ -71,7 +69,7 @@ public class ApiCrypto {
      * <h2>Example response</h2>
      * {"seed":"D9FFKCjo4cG2jL9FrZmXCKfQypZG8AdbnF7vtm5Aqou9"}
      */
-    @RequestMapping(value = "generateSeed", method = RequestMethod.GET,
+    @GetMapping(value = "generateSeed",
             produces = "application/json; charset=utf-8")
     public ResponseEntity generateSeed() {
         byte[] seed = new byte[32];
@@ -118,7 +116,6 @@ public class ApiCrypto {
      *
      * @param jsonObject is JSON contains keys and message for encrypt
      * @return JSON string contains encode Base58 message
-     * @throws Exception
      */
     @RequestMapping(value = "encrypt", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
@@ -170,7 +167,6 @@ public class ApiCrypto {
      *
      * @param toSign JSON string contains {@link #generateKeyPair(String)} keyPair for sign and message
      * @return
-     * @throws Exception
      */
     @RequestMapping(value = "sign", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
@@ -195,7 +191,6 @@ public class ApiCrypto {
      *
      * @param toVerifySign contains there public key, signature and message.
      * @return JSON string contains
-     * @throws Exception
      */
     @RequestMapping(value = "verifySignature", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
@@ -232,18 +227,17 @@ public class ApiCrypto {
      * "numAccount":1,
      * "publicKey":"AQyCxEXLewJvqzLegTW41xF3qjnTCr7tVvT6639WJsKb",
      * "account":"7FAxosYza2B4X9GcbxGWgKW8QXUZKQystx"}
-     * @throws ParseException
      */
     @RequestMapping(value = "generateAccount", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity generateAccount(@RequestBody JSONObject value) throws ParseException {
+    public ResponseEntity generateAccount(@RequestBody JSONObject value) {
 
         JSONObject jsonObject = value;
         Integer nonce = Integer.valueOf(jsonObject.get("nonce").toString());
         String seed = jsonObject.get("seed").toString();
         JSONObject jsonObjectResult = new JSONObject();
 
-        byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+        byte[] nonceBytes = Ints.toByteArray(nonce - 1);
         byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seed), nonceBytes);
         byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
 
@@ -282,23 +276,29 @@ public class ApiCrypto {
     @SuppressWarnings("unchecked")
     public ResponseEntity generateTelegram(@RequestBody JSONObject param) {
 
-        this.status =true;
-        this.delay = Integer.valueOf(param.get("delay").toString());
+        status = true;
+        delay = Integer.valueOf(param.get("delay").toString());
         Random random = new Random();
         JSONObject jsonObject = new JSONObject();
         ArrayList<String> arrayListRecipient = new ArrayList<>();
-        Pair<byte[], byte[]> KeyPairRecipient = null;
-        for (int i = 1; i < 5; i++) {
-            int nonce = i;
-            byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+        Pair<byte[], byte[]> keyPairRecipient = null;
+        for (int nonce = 1; nonce < 5; nonce++) {
+            byte[] nonceBytes = Ints.toByteArray(nonce - 1);
             byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(SEED_RECIPIENT), nonceBytes);
             byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
-            KeyPairRecipient = Crypto.getInstance().createKeyPair(accountSeed);
-            String address = Crypto.getInstance().getAddress(KeyPairRecipient.getB());
+            keyPairRecipient = Crypto.getInstance().createKeyPair(accountSeed);
+            String address = Crypto.getInstance().getAddress(keyPairRecipient.getB());
             arrayListRecipient.add(address);
         }
-        this.startTime = System.currentTimeMillis();
-        Pair<byte[], byte[]> finalKeyPairRecipient = KeyPairRecipient;
+
+        if (endTime != 0)
+            endTime = 0;
+
+        if (countSend != 0)
+            countSend = 0;
+
+        startTime = System.currentTimeMillis();
+        Pair<byte[], byte[]> finalKeyPairRecipient = keyPairRecipient;
         thread = new Thread(() -> {
             do {
                 int currentPeer = random.nextInt(PEERS.size());
@@ -309,9 +309,8 @@ public class ApiCrypto {
                 String seedPeer = PEERS.get(ipPeeer).toString();
 
                 ArrayList<String> arrayListCreator = new ArrayList<>();
-                for (int i = 1; i < 10; i++) {
-                    int nonce = i;
-                    byte[] nonceBytes = Ints.toByteArray(Integer.valueOf(nonce) - 1);
+                for (int nonce = 1; nonce < 10; nonce++) {
+                    byte[] nonceBytes = Ints.toByteArray(nonce - 1);
                     byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seedPeer), nonceBytes);
                     byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
                     keyPairCreator = Crypto.getInstance().createKeyPair(accountSeed);
@@ -320,10 +319,15 @@ public class ApiCrypto {
                 }
 
                 JSONObject message = new JSONObject();
-                if (this.status == true) {
+                if (status) {
 
-                    Integer typeTelegram = random.nextInt(3);
-                    String user = "", expire = "", randomPrice = "", phone = "", order = "";
+                    int typeTelegram = random.nextInt(3);
+                    String user = "";
+                    String expire = "";
+                    String randomPrice = "";
+                    String phone = "";
+                    String order = "";
+
                     String encrypt = "false";
                     long date = System.currentTimeMillis();
                     Object recipient = arrayListRecipient.get(random.nextInt(4));
@@ -354,7 +358,7 @@ public class ApiCrypto {
                     // random message
                     else if (typeTelegram == 2) {
 
-                        Integer countField = random.nextInt(8);
+                        int countField = random.nextInt(8);
                         for (int i = 0; i < countField; i++) {
                             String keyS = randomString.generateRandomString();
                             String val = randomString.generateRandomString();
@@ -405,7 +409,7 @@ public class ApiCrypto {
                             tx.sign(keyPairCreator);
                             byteCode = Base58.encode(tx.toBytes(true));
                         } catch (Exception e) {
-
+                            LOGGER.info(String.valueOf(e));
                         }
                     }
                     try {
@@ -413,26 +417,27 @@ public class ApiCrypto {
                         if (byteCode != "") {
                             try {
                                 ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", byteCode);
-                                this.countSend++;
+                                countSend++;
                             } catch (Exception e) {
-                                System.out.println(ipPeeer + " byteCode for peer: " + byteCode);
+                                LOGGER.error(ipPeeer + " byteCode for peer: " + byteCode);
                             }
                         }
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOGGER.info(String.valueOf(e));
                     }
 
                     try {
                         Thread.sleep(this.delay);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOGGER.info(String.valueOf(e));
+
                     }
                 } else {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        LOGGER.info(String.valueOf(e));
                     }
                 }
             } while (true);
@@ -441,8 +446,8 @@ public class ApiCrypto {
         thread.start();
 
         JSONObject result = new JSONObject();
-        result.put("status sending telegrams", this.status);
-        result.put("delay", this.delay);
+        result.put("status sending telegrams", status);
+        result.put("delay", delay);
         return ResponseEntity.ok(result.toJSONString());
     }
 
@@ -466,23 +471,12 @@ public class ApiCrypto {
             produces = "application/json; charset=utf-8")
     public ResponseEntity modifyGenerateTelegram(@RequestBody JSONObject param) {
 
-        this.status = Boolean.valueOf(param.get("status").toString());
-        this.delay = Integer.valueOf(param.get("delay").toString());
+        status = Boolean.valueOf(param.get("status").toString());
+        delay = Integer.valueOf(param.get("delay").toString());
         JSONObject jsonObjectResult = new JSONObject();
-        jsonObjectResult.put("status sending telegrams", this.status);
-        jsonObjectResult.put("delay", this.delay);
+        jsonObjectResult.put("status sending telegrams", status);
+        jsonObjectResult.put("delay", delay);
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
-    }
-
-    @RequestMapping(value = "sendTelegram", method = RequestMethod.POST,
-            produces = "application/json; charset=utf-8")
-    public ResponseEntity sendTelegram() {
-        JSONObject jsonObject = new JSONObject();
-
-        byte[] transactionType = new byte[]{31, 0, 0, 0};
-        Long timestamp = Long.parseLong(new Timestamp(System.currentTimeMillis()).toString());
-
-        return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
     @RequestMapping(value = "decode/{message}", method = RequestMethod.GET,
@@ -552,13 +546,11 @@ public class ApiCrypto {
     public ResponseEntity generateByteCode (@RequestBody JSONObject jsonParse) throws Exception {
 
         String recipient = jsonParse.get("recipient").toString();
-        String creator = jsonParse.get("creator").toString();
         String title = jsonParse.get("title").toString();
         String orderNumber = jsonParse.get("orderNumber").toString();
-        String orderUser = jsonParse.get("orderUser").toString();
         String details = jsonParse.get("details").toString();
         String description = jsonParse.get("description").toString();
-        int expire = Integer.valueOf(jsonParse.get("expire").toString());
+        int expire = Integer.parseInt(jsonParse.get("expire").toString());
         double amount = Double.parseDouble(jsonParse.get("amount").toString());
         long timestamp = NTP.getTime();
         byte encrypt = Boolean.parseBoolean(jsonParse.get("encrypt").toString()) ? (byte) 1 : (byte) 0;
@@ -610,16 +602,14 @@ public class ApiCrypto {
      */
     @RequestMapping(value = "generator/state", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
-    public ResponseEntity stateGenerateTelegram() throws InterruptedException {
-
-
+    public ResponseEntity stateGenerateTelegram() {
 
         JSONObject jsonObject = new JSONObject();
 
-        jsonObject.put("status sending telegrams", this.status);
-        jsonObject.put("delay", this.delay);
-        jsonObject.put("count telegram", this.countSend);
-        jsonObject.put("work time", WorkTime());
+        jsonObject.put("status sending telegrams", status);
+        jsonObject.put("delay", delay);
+        jsonObject.put("count telegram", countSend);
+        jsonObject.put("work time", workTime());
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
@@ -633,25 +623,26 @@ public class ApiCrypto {
 
      *              <h2>Example response</h2>
      *              { "delay": 500,"status sending telegrams": false }
-     * @return
+     * @return JSON state generator
      */
 
     @RequestMapping(value = "generator/stop", method = RequestMethod.GET,
             produces = "application/json; charset=utf-8")
     public ResponseEntity stopGenerateTelegram() {
-        this.endTime = System.currentTimeMillis();
-            this.status = false;
+        endTime = System.currentTimeMillis();
+        status = false;
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("status sending telegrams", this.status);
-        jsonObject.put("delay", this.delay);
-        jsonObject.put("work time", WorkTime());
+        jsonObject.put("status sending telegrams", false);
+        jsonObject.put("delay", delay);
+        jsonObject.put("work time", workTime());
 
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
 
-    private String WorkTime() {
-        long startCustomTime, endCustomTime;
+    private String workTime() {
+        long startCustomTime;
+        long endCustomTime;
 
         if (startTime == 0)
             startCustomTime = System.currentTimeMillis();
@@ -665,13 +656,12 @@ public class ApiCrypto {
 
         long diffTime = endCustomTime - startCustomTime;
 
-        String time = String.format("%02d hour, %02d min, %02d sec",
+        return String.format("%02d hour, %02d min, %02d sec",
                 TimeUnit.MILLISECONDS.toHours(diffTime),
                 TimeUnit.MILLISECONDS.toMinutes(diffTime),
                 TimeUnit.MILLISECONDS.toSeconds(diffTime) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(diffTime))
         );
-        return time;
     }
 
     /**

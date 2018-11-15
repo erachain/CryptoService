@@ -107,7 +107,7 @@ public class SetSettingFile {
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
         con.setRequestMethod(requestMethod.toUpperCase());
-
+        con.setConnectTimeout(1000);
         switch (requestMethod.toUpperCase()) {
             case "GET":
                 con.setRequestMethod("GET");
