@@ -681,4 +681,30 @@ public class ApiCrypto {
         jsonObject.put("verify account", verify);
         return ResponseEntity.ok(jsonObject.toJSONString());
     }
+
+    @PostMapping(value = "generateAccountV2", produces = "application/json; charset=utf-8")
+    public ResponseEntity generateAccountNewMethod(@RequestBody JSONObject value) {
+
+        JSONObject jsonObject = value;
+        Integer nonce = Integer.valueOf(jsonObject.get("nonce").toString());
+        String seed = jsonObject.get("seed").toString();
+        JSONObject jsonObjectResult = new JSONObject();
+
+        byte[] nonceBytes = Ints.toByteArray(nonce - 1);
+        byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seed), nonceBytes);
+        byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
+
+        Pair<byte[], byte[]> keyPair = Crypto.getInstance().createKeyPair(accountSeed);
+
+        String address = Crypto.getInstance().getAddressBounceCastle(keyPair.getB());
+
+        jsonObjectResult.put("numAccount", nonce);
+        jsonObjectResult.put("accountSeed", Base58.encode(accountSeed));
+        jsonObjectResult.put("publicKey", Base58.encode(keyPair.getB()));
+        jsonObjectResult.put("privateKey", Base58.encode(keyPair.getA()));
+        jsonObjectResult.put("account", address);
+
+        return ResponseEntity.ok(jsonObjectResult.toJSONString());
+    }
+
 }

@@ -2,6 +2,7 @@ package com.crypto;
 
 import com.google.common.primitives.Bytes;
 import com.utils.Pair;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,25 @@ public class Crypto {
         return this.getAddressFromShort(publicKeyHash);
     }
 
+    /**
+     * @param publicKey
+     * @return
+     */
+    public String getAddressBounceCastle(byte[] publicKey) {
+        //SHA256 PUBLICKEY FOR PROTECTION
+        byte[] publicKeyHash = this.digest(publicKey);
+
+        //RIPEMD160 TO CREATE A SHORTER ADDRESS
+        //RIPEMD160 ripEmd160 = new RIPEMD160();
+        //publicKeyHash = ripEmd160.digest(publicKeyHash);
+
+        RIPEMD160Digest ripemd160Digest = new RIPEMD160Digest();
+        byte[] result = new byte[20];
+        ripemd160Digest.update(publicKeyHash, 0, publicKeyHash.length);
+        ripemd160Digest.doFinal(result, 0);
+
+        return this.getAddressFromShort(result);
+    }
     public String getATAddress(byte[] signature) {
         //SHA256 SIGNATURE TO CONVERT IT TO 32BYTE
         byte[] publicKeyHash = this.digest(signature);
