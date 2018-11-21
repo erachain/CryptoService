@@ -18,6 +18,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -274,7 +276,8 @@ public class ApiCrypto {
     @RequestMapping(value = "generator/start", method = RequestMethod.POST,
             produces = "application/json; charset=utf-8")
     @SuppressWarnings("unchecked")
-    public ResponseEntity generateTelegram(@RequestBody JSONObject param) {
+    public ResponseEntity generateTelegram(@RequestBody JSONObject param) throws UnknownHostException {
+        String localAddress = InetAddress.getLocalHost().getHostAddress();
 
         status = true;
         delay = Integer.valueOf(param.get("delay").toString());
@@ -400,7 +403,7 @@ public class ApiCrypto {
                                 Base58.encode(keyPairCreator.getA()),
                                 recipient.toString(),
                                 Base58.encode(finalKeyPairRecipient.getB()),
-                                ipPeeer,
+                                "Ip creator to recipient: " + localAddress + "->" + ipPeeer,
                                 message.toJSONString(),
                                 BigDecimal.ZERO,
                                 //BigDecimal.valueOf(orderAmount),
