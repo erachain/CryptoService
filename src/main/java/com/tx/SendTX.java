@@ -67,7 +67,7 @@ public class SendTX {
         } else {
             type[2] = (byte) -127;
         }
-        if (head != null || data != null) {
+        if (data != null) {
             type[3] = (byte) 0;
         } else {
             type[3] = (byte) -127;
