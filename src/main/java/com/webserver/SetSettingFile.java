@@ -89,11 +89,11 @@ public class SetSettingFile {
                 WHITE_LIST.add(aJsonArray.toString());
             }
 
-            for (Object key : jsonArrayNode.keySet()) {
-
-                jsonArrayNode.get(key);
-                PEERS.put(key, jsonArrayNode.get(key));
-            }
+//            for (Object key : jsonArrayNode.keySet()) {
+//
+//                jsonArrayNode.get(key);
+//                PEERS.put(key, jsonArrayNode.get(key));
+//            }
 
         } catch (Exception e) {
             throw new Exception(e);
