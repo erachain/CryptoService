@@ -1,3 +1,5 @@
+import org.ajoberstar.grgit.Grgit
+
 buildscript {
     repositories {
         jcenter()
@@ -11,6 +13,8 @@ plugins {
     id 'java'
     id 'idea'
     id 'org.springframework.boot' version '2.0.5.RELEASE'
+    id 'org.ajoberstar.grgit' version '3.0.0-rc.2'
+    id 'net.ltgt.apt' version '0.10'
 }
 
 allprojects {
@@ -23,9 +27,7 @@ allprojects {
 }
 
 ext {
-    git = org.ajoberstar.grgit.Grgit.open()
-    rev = git.head().id
-    rev = git.head().getAbbreviatedId(8)
+    git = Grgit.open(dir: rootProject.rootDir)
     slf4jVersion = '1.7.25'
     jettyVersion = '9.4.12.v20180830'
     jerseyVersion = '2.27'
@@ -41,7 +43,7 @@ ext {
 }
 
 group 'CryptoService'
-version "1.0-${git.head().abbreviatedId}"
+//version "1.0-${git.head().abbreviatedId}"
 
 sourceCompatibility = 1.8
 
@@ -60,8 +62,9 @@ jar{
                 'Implementation-Title' : 'Gradle Build: ' + project.name,
                 'Implementation-Version' : project.version,
                 'Build-Time' : new Date().format("yyyy-MM-dd HH:mm:ssZ"),
-                'Git-Commit' : rev,
-                'Git-Branch' : git.branch.current.getName()
+                'Git-Commit': git.head().abbreviatedId
+                //'Git-Branch': git.branch.
+
         )
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

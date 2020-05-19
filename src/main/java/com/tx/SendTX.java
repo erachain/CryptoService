@@ -5,6 +5,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.crypto.Base58;
 import com.crypto.Crypto;
+import com.webserver.SetSettingFile;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.utils.Pair;
@@ -16,6 +17,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import static com.webserver.SetSettingFile.*;
 
 
 public class SendTX {
@@ -62,7 +64,7 @@ public class SendTX {
         byte[] type = new byte[4];
         type[0] = (byte) 31;
         type[1] = (byte) 0;
-        if (amount.compareTo(new BigDecimal(0)) > 0) {
+        if (amount.signum() != 0) {
             type[2] = (byte) 0;
         } else {
             type[2] = (byte) -127;
@@ -72,7 +74,7 @@ public class SendTX {
         } else {
             type[3] = (byte) -127;
         }
-        this.port = 9066;
+        this.port = NET_PORT;
         this.setTX(encrypt, (byte) 1, creator, privateKeyString, recipient, publicKeyRecipient, type, head, data, amount, timestamp, key, feePow);
     }
 
