@@ -194,6 +194,8 @@ public class ApiCryptoTest extends SetSettingFile {
         if (SIGN == null)
             sign();
 
+        initSeed();
+
         Object result = new ApiCrypto().verifySignature((JSONObject) new JSONParser().parse("{\"publicKey\":\"" + Account1_publicKey + "\"," +
                 "\"signature\":\"" + SIGN + "\"," +
                 "\"message\":\"" + MESSAGE + "\"}"));
@@ -416,12 +418,12 @@ public class ApiCryptoTest extends SetSettingFile {
         Pair<byte[], byte[]> finalKeyPairRecipient = KeyPairRecipient;
         // Thread thread = new Thread(() -> {
         do {
-            int currentPeer = random.nextInt(PEERS.size());
+            int currentPeer = random.nextInt(ADDRESS_API.size());
             long timestamp = com.ntp.NTP.getTime();
             Pair<byte[], byte[]> keyPairCreator = null;
             String byteCode = "";
-            String ipPeeer = new ArrayList<String>(PEERS.keySet()).get(currentPeer);
-            String seedPeer = PEERS.get(ipPeeer).toString();
+            String seedPeer = new ArrayList<String>(ADDRESS_API.keySet()).get(currentPeer);
+            String ipPeeer = ADDRESS_API.get(seedPeer).toString();
 
             ArrayList<String> arrayListCreator = new ArrayList<>();
             for (int i = 1; i < 10; i++) {

@@ -9,7 +9,10 @@ import com.ntp.NTP;
 import com.tx.SendTX;
 import com.utils.Pair;
 import com.utils.StringRandomGen;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,9 +25,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.webserver.SetSettingFile.*;
@@ -35,12 +36,19 @@ import static com.webserver.SetSettingFile.*;
 @SuppressWarnings("unchecked")
 public class ApiCrypto {
     private static Thread thread;
+    private static Thread txThread;
+
     final static private Logger LOGGER = LoggerFactory.getLogger(ApiCrypto.class);
     private static Boolean status = false;
+    private static Boolean txStatus = false;
     private static Integer delay = Integer.MAX_VALUE;
+    private static Integer txDelay = Integer.MAX_VALUE;
     private static Integer countSend = 0;
+    private static Integer txCountSend = 0;
     private static long startTime;
+    private static long txStartTime;
     private static long endTime;
+    private static long txEndTime;
 
     long orderAssetKey = 643L;
 
@@ -202,7 +210,20 @@ public class ApiCrypto {
 
         byte[] publicKey = Base58.decode(jsonObject.get("publicKey").toString());
         byte[] signature = Base58.decode(jsonObject.get("signature").toString());
-        byte[] message = Base58.decode(jsonObject.get("message").toString());
+        byte[] message;
+        try {
+            message = Base58.decode(jsonObject.get("message").toString());
+        } catch (Exception e) {
+            try {
+                message = jsonObject.get("message").toString().getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e1) {
+                LOGGER.info(String.valueOf(e));
+                JSONObject jsonObjectResult = new JSONObject();
+                jsonObjectResult.put("error", e1.getMessage());
+
+                return ResponseEntity.ok(jsonObjectResult.toJSONString());
+            }
+        }
 
         boolean statusVerify = Crypto.getInstance().verify(publicKey, signature, message);
 
@@ -304,17 +325,17 @@ public class ApiCrypto {
         Pair<byte[], byte[]> finalKeyPairRecipient = keyPairRecipient;
         thread = new Thread(() -> {
             do {
-                int currentPeer = random.nextInt(PEERS.size());
+                int currentAddressIdx = random.nextInt(ADDRESS_API.size());
                 long timestamp = com.ntp.NTP.getTime();
                 Pair<byte[], byte[]> keyPairCreator = null;
                 String byteCode = "";
-                String ipPeeer = new ArrayList<String>(PEERS.keySet()).get(currentPeer);
-                String seedPeer = PEERS.get(ipPeeer).toString();
+                String wallet = new ArrayList<String>(ADDRESS_API.keySet()).get(currentAddressIdx);
+                String ipPeeer = (String) ADDRESS_API.get(wallet);
 
                 ArrayList<String> arrayListCreator = new ArrayList<>();
                 for (int nonce = 1; nonce < 10; nonce++) {
                     byte[] nonceBytes = Ints.toByteArray(nonce - 1);
-                    byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(seedPeer), nonceBytes);
+                    byte[] accountSeedConcat = Bytes.concat(nonceBytes, Base58.decode(wallet), nonceBytes);
                     byte[] accountSeed = Crypto.getInstance().doubleDigest(accountSeedConcat);
                     keyPairCreator = Crypto.getInstance().createKeyPair(accountSeed);
                     String address = Crypto.getInstance().getAddress(keyPairCreator.getB());
@@ -419,10 +440,11 @@ public class ApiCrypto {
 
                         if (byteCode != "") {
                             try {
-                                ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", byteCode);
+                                ResponseValueAPI("http://" + ipPeeer + ":" + API_PORT + "/api/broadcasttelegram/" + byteCode, "GET", null);
                                 countSend++;
                             } catch (Exception e) {
                                 LOGGER.error(ipPeeer + " byteCode for peer: " + byteCode);
+                                LOGGER.error(e.getMessage());
                             }
                         }
 
@@ -474,11 +496,20 @@ public class ApiCrypto {
             produces = "application/json; charset=utf-8")
     public ResponseEntity modifyGenerateTelegram(@RequestBody JSONObject param) {
 
-        status = Boolean.valueOf(param.get("status").toString());
-        delay = Integer.valueOf(param.get("delay").toString());
+        if (param.containsKey("status"))
+            status = Boolean.valueOf(param.get("status").toString());
+        if (param.containsKey("txStatus"))
+            txStatus = Boolean.valueOf(param.get("txStatus").toString());
+        if (param.containsKey("delay"))
+            delay = Integer.valueOf(param.get("delay").toString());
+        if (param.containsKey("txDelay"))
+            txDelay = Integer.valueOf(param.get("txDelay").toString());
+
         JSONObject jsonObjectResult = new JSONObject();
         jsonObjectResult.put("status sending telegrams", status);
         jsonObjectResult.put("delay", delay);
+        jsonObjectResult.put("status sending transactopns", txStatus);
+        jsonObjectResult.put("txDelay", txDelay);
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
     }
 
@@ -705,6 +736,246 @@ public class ApiCrypto {
         jsonObjectResult.put("account", address);
 
         return ResponseEntity.ok(jsonObjectResult.toJSONString());
+    }
+
+
+    @RequestMapping(value = "txgenerator/{delay}", method = RequestMethod.GET,
+            produces = "application/json; charset=utf-8")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity generateTransaction(@PathVariable("delay") int delay) throws UnknownHostException {
+
+        for (Object ip: NODES_RPC.keySet()) {
+            String respStr = null;
+            try {
+                respStr = ResponseValueAPI("http://" + ip.toString() + ":" + RPC_PORT + "/r_send/tets1/"
+                                + delay
+                                + "?password=" + NODES_RPC.get(ip).toString(),
+                        "GET", null);
+            } catch (Exception e) {
+                LOGGER.error(ip + " error to START ");
+                LOGGER.error("ERREOR: " + e.getMessage());
+                continue;
+            }
+
+            if (respStr == null) {
+                LOGGER.error(ip + " error to UNLOCK respStr == null ");
+                continue;
+            }
+
+            JSONObject response = null;
+            try {
+                JSONParser jsonParser = new JSONParser();
+                response = (JSONObject) jsonParser.parse(respStr);
+                if (response == null) {
+                    LOGGER.error(ip + " error to UNLOCK response = null - " + respStr);
+                    continue;
+                }
+
+            } catch (Exception e) {
+                LOGGER.info(ip + " error PARSE JSON");
+                LOGGER.error(ip + ": " + respStr);
+                continue;
+            }
+        }
+
+        JSONObject result = new JSONObject();
+        result.put("delay", delay);
+        return ResponseEntity.ok(result.toJSONString());
+    }
+
+    /**
+     * Generate random transaction. Wallet seed sender and wallet seed recipient set in setting.json.
+     * If status true all telegram will sending. Status false suspending thread sending telegram.
+     * In the setting.json set ip and seed wallet nodes.
+     *
+     * @param param  JSON param
+     *
+     *               <h2>Example request</h2>
+     *               http://127.0.0.1:8181/crypto/txgenerator/start
+     *
+     *       body
+     *     {"delay": 100}
+     *
+     *               <h2>Example response</h2>
+     *               {"status sending telegrams", "true", "delay": 100}
+     * @return List telegram in JSON format
+     */
+    @RequestMapping(value = "txgenerator_old/start", method = RequestMethod.POST,
+            produces = "application/json; charset=utf-8")
+    @SuppressWarnings("unchecked")
+    public ResponseEntity generateTransactionOLD(@RequestBody JSONObject param) throws UnknownHostException {
+        String localAddress = InetAddress.getLocalHost().getHostAddress();
+
+        txStatus = true;
+        txDelay = Integer.valueOf(param.get("delay").toString());
+        Random random = new Random();
+        JSONObject jsonObject = new JSONObject();
+
+        // ADDRESS - > IP + PASSWORD
+
+        if (endTime != 0)
+            endTime = 0;
+
+        if (txCountSend != 0)
+            txCountSend = 0;
+
+        txStartTime = System.currentTimeMillis();
+        txThread = new Thread(() -> {
+
+            // UNLOCK WALLET
+            HashMap<String, String> peersIP = new HashMap<>();
+
+            for (Object key: ADDRESS_RPC.keySet()) {
+                JSONArray item = (JSONArray)ADDRESS_RPC.get(key);
+                peersIP.put((String)item.get(0), (String)item.get(1));
+
+            }
+
+            for (String ip: peersIP.keySet()) {
+                String respStr = null;
+                try{
+                    respStr = ResponseValueAPI("http://" + ip + ":" + RPC_PORT + "/wallet/unlock",
+                            "POST", peersIP.get(ip));
+                } catch (Exception e) {
+                    LOGGER.error(ip + " error to UNLOCK ");
+                    LOGGER.error("ERREOR: " + e.getMessage());
+                    continue;
+                }
+
+                if (respStr == null) {
+                    LOGGER.error(ip + " error to UNLOCK respStr == null ");
+                    continue;
+                }
+
+                if (respStr.equals("true")) {
+                    LOGGER.info(ip + " UNLOCKED!");
+                    continue;
+                } else if (respStr.equals("false")) {
+                    LOGGER.info(ip + " wrong password!!!");
+                    continue;
+                }
+
+                JSONObject response = null;
+                try {
+                    JSONParser jsonParser = new JSONParser();
+                    response = (JSONObject) jsonParser.parse(respStr);
+                    if (response == null) {
+                        LOGGER.error(ip + " error to UNLOCK response = null - " + respStr);
+                        continue;
+                    }
+
+                } catch (Exception e) {
+                    LOGGER.info(ip + " error PARSE JSON");
+                    LOGGER.error(ip + ": " + respStr);
+                    continue;
+                }
+            }
+
+            List<String> addresses = new ArrayList<String>(ADDRESS_RPC.keySet());
+
+            do {
+
+                try {
+                    long timeTmp = System.currentTimeMillis();
+
+                    try {
+                        // not FREZEE machine
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                    }
+
+                    int currentAddressIdx = random.nextInt(addresses.size());
+                    String address = addresses.get(currentAddressIdx);
+                    JSONArray peerInfo = (JSONArray) ADDRESS_RPC.get(address);
+                    String peerIP = (String) peerInfo.get(0);
+
+                    JSONObject postData = new JSONObject();
+                    postData.put("creator", address);
+
+                    // GET RECIPIENR not same as CREATOR
+                    String recipient;
+                    do {
+                        int toWalletIdx = random.nextInt(addresses.size());
+                        recipient = addresses.get(toWalletIdx);
+                    } while (recipient.equals(address));
+                    postData.put("recipient", recipient);
+                    postData.put("title", "Happy New YEAR " + recipient + "!!!");
+                    postData.put("encrypt", true);
+                    postData.put("message", postData.toJSONString());
+
+                    // not need 0 its UNLOCKED all postData.put("password", (String) peerInfo.get(1));
+
+                    timeTmp -= System.currentTimeMillis();
+                    if (timeTmp < -1000) {
+                        LOGGER.error(peerIP + " FREZZEE on " + -timeTmp/1000);
+                    }
+
+                    try {
+                        timeTmp = System.currentTimeMillis();
+                        LOGGER.info("try send to: " + peerIP);
+                        String respStr = ResponseValueAPI("http://" + peerIP + ":" + RPC_PORT + "/r_send",
+                                "POST", postData.toJSONString());
+                        timeTmp -= System.currentTimeMillis();
+                        if (timeTmp < -2000) {
+                            LOGGER.error(peerIP + " FREZZEE on " + -timeTmp/1000);
+                        }
+
+                        JSONObject response;
+                        try {
+                            //response = (JSONObject) JSONValue.parse(respStr);
+                            JSONParser jsonParser = new JSONParser();
+                            response = (JSONObject) jsonParser.parse(respStr);
+
+                        } catch (Exception e1) {
+                            LOGGER.error(peerIP + " command for peer: " + postData.toJSONString());
+                            LOGGER.error(peerIP + ": " + respStr);
+                            continue;
+                        }
+
+                        if (response == null) {
+                            LOGGER.error(peerIP + " command for peer: " + postData.toJSONString());
+                            LOGGER.error(peerIP + ": " + respStr);
+                            continue;
+                        }
+
+                        if (response.containsKey("error_message")) {
+                            LOGGER.error(peerIP + " command for peer: " + postData.toJSONString());
+                            LOGGER.error(peerIP + ": " + response.get("error_message"));
+                            continue;
+                        } else if (!response.containsKey("signature")) {
+                            LOGGER.error(peerIP + " command for peer: " + postData.toJSONString());
+                            LOGGER.error(respStr);
+                            continue;
+                        } else {
+
+                            txCountSend++;
+                            if (txCountSend % (2000 / this.txDelay + 100) == 0) {
+                                LOGGER.info("Sended: " + txCountSend);
+                            }
+
+                            try {
+                                Thread.sleep(this.txDelay);
+                            } catch (InterruptedException e) {
+                            }
+
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error(peerIP + " command for peer: " + postData.toJSONString());
+                        LOGGER.error("ERREOR: " + e.getMessage());
+                    }
+                } catch (Exception e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+
+            } while (true);
+        });
+
+        txThread.start();
+
+        JSONObject result = new JSONObject();
+        result.put("status sending transactions", txStatus);
+        result.put("delay", txDelay);
+        return ResponseEntity.ok(result.toJSONString());
     }
 
 }
